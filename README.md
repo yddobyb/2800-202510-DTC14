@@ -1,3 +1,10 @@
+This is my readme file.
+
+to run the website.
+1. download the files
+2. open index.html in your browser
+
+
 # ParkSmart Analyzer
 
 **ParkSmart Analyzer** is a mobile-first progressive web application that helps drivers in Vancouver comply with curb-side rules and avoid unintentional parking tickets. By merging several City of Vancouver open-data feeds—parking-ticket records, meter rates, motorcycle & accessible stalls, and street-cleaning schedules—it visualizes enforcement intensity, highlights legal special-use spaces, and sends timely push alerts to encourage on-time payment or relocation.
