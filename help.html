@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Help & Support</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      touch-action: pan-y;
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+
+<body class="bg-[#16171B] text-white min-h-screen flex items-end justify-center">
+
+  <!-- Slide-up Help Panel -->
+  <div id="helpPanel" class="w-full max-w-md h-[90%] bg-[#1A1B1E] rounded-t-3xl shadow-2xl p-6 space-y-6 overflow-y-auto transition-transform duration-300 transform translate-y-0">
+
+    <!-- Drag Handle -->
+    <div class="flex justify-center">
+      <div class="w-12 h-1.5 bg-[#3A3B3E] rounded-full mb-4"></div>
+    </div>
+
+    <!-- Title -->
+    <h1 class="text-2xl font-bold text-center">Help & Support</h1>
+
+    <!-- HELP Section -->
+    <h2 class="text-sm text-[#9999A3] uppercase font-semibold mb-3 tracking-wide">Help</h2>
+    <div class="bg-[#26272B]/80 backdrop-blur-md rounded-2xl overflow-hidden divide-y divide-[#36373B] shadow-md">
+        <template id="menu-item">
+            <a href="#" class="flex items-center justify-between p-5 hover:bg-[#2A2B2F] transition-all">
+                <span class="text-white font-medium">Help</span>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+        </template>
+        <a href="#" class="flex items-center justify-between p-5 hover:bg-[#2A2B2F] transition-all">
+            <span class="text-white font-medium">Troubleshooting</span>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
+        <a href="#" class="flex items-center justify-between p-5 hover:bg-[#2A2B2F] transition-all">
+            <span class="text-white font-medium">Learn How ParkSmart Works</span>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
+        <a href="#" class="flex items-center justify-between p-5 hover:bg-[#2A2B2F] transition-all">
+            <span class="text-white font-medium">Updates and News</span>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
+    </div>
+
+    <!-- SUPPORT Section -->
+    <h2 class="text-sm text-[#9999A3] uppercase font-semibold mb-3 tracking-wide">Support</h2>
+    <div class="bg-[#26272B]/80 backdrop-blur-md rounded-2xl overflow-hidden divide-y divide-[#36373B] shadow-md">
+        <template id="menu-item">
+            <a href="#" class="flex items-center justify-between p-5 hover:bg-[#2A2B2F] transition-all">
+                <span class="text-white font-medium">Support</span>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+        </template>
+        <a href="#" class="flex items-center justify-between p-5 hover:bg-[#2A2B2F] transition-all">
+            <span class="text-white font-medium">Submit a Review</span>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
+        <a href="#" class="flex items-center justify-between p-5 hover:bg-[#2A2B2F] transition-all">
+            <span class="text-white font-medium">Talk to an Agent</span>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
+        <a href="#" class="flex items-center justify-between p-5 hover:bg-[#2A2B2F] transition-all">
+            <span class="text-white font-medium">Report a Problem</span>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
+    </div>
+
+    <!-- Spacer -->
+    <div class="h-40"></div>
+
+    <!-- Logout Button -->
+    <!-- <button class="w-full py-3 mt-2 bg-blue-700 rounded-xl text-white font-semibold hover:bg-blue-700 transition">Log Out</button> -->
+  </div>
+
+  <!-- Optional Swipe-to-Close Script -->
+  <script>
+    let startY = 0;
+    const panel = document.getElementById('helpPanel');
+
+    panel.addEventListener('touchstart', (e) => {
+      startY = e.touches[0].clientY;
+    });
+
+    panel.addEventListener('touchmove', (e) => {
+      const currentY = e.touches[0].clientY;
+      const diff = currentY - startY;
+
+      if (diff > 50) {
+        panel.classList.add('translate-y-full');
+        setTimeout(() => panel.style.display = 'none', 300);
+      }
+    });
+  </script>
+</body>
+
+</html>
