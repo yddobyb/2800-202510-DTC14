@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 
-# This is the City’s live parking rates page (Vancouver, BC)
 RATES_URL = "https://vancouver.ca/streets-transportation/parking-meters-and-rates.aspx"
 
 def scrape_parking_rates():
@@ -9,18 +8,15 @@ def scrape_parking_rates():
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
 
-    # Find the first <table> under the main content area
     table = soup.select_one("main table")
     if not table:
         raise RuntimeError("Could not find the rates table on the page")
 
     rates = {}
-    # assume the first row is headers, find their indices
     headers = [th.get_text(strip=True).lower() for th in table.select("thead th")]
     zi = headers.index("zone")    if "zone"    in headers else headers.index("block")
     ri = headers.index("rate")    if "rate"    in headers else headers.index("hourly rate")
 
-    # iterate body rows
     for row in table.select("tbody tr"):
         cols = [td.get_text(strip=True) for td in row.find_all("td")]
         if len(cols) <= max(zi, ri):
