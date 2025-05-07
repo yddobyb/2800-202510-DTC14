@@ -17,28 +17,33 @@
 <body class="bg-white min-h-screen flex items-center justify-center">
     <div class="w-[440px] h-[956px] bg-white overflow-hidden relative px-6">
         <!-- Parking Image -->
-        <div class="relative">
-            <img src="asset/parking.png" alt="Parking" class="w-[193px] h-[193px] object-cover pt-[25px]">
+        <div class="mt-4 relative">
+            <img src="public/asset/parking.png" alt="Parking" class="-ml-[37px] w-[193px] h-[193px] object-cover pt-[25px]">
             <!-- Decorative Lines -->
-            <div class="absolute left-0 w-[200px] h-[2px] bg-[#7D7D7D]"></div>
-            <div class="absolute bottom-[-10px] left-[-13px] w-[200px] h-[2px] bg-[#7D7D7D]"></div>
+            <div class="absolute left-[-28px] w-[200px] h-[2px] border-[#7D7D7D] border-2"></div>
+            <div class="absolute bottom-[-12px] left-[-45px] w-[200px] h-[2px] border-[#7D7D7D] border-2"></div>
         </div>
         
         <!-- Welcome Text -->
-        <h1 class="text-center text-[28px] font-bold text-black mt-24 mb-10">Welcome To ParkSmart</h1>
+        <h1 class="text-center text-[28px] font-bold text-black mt-16 mb-10">Welcome To ParkSmart</h1>
 
         <!-- Login Form -->
         <div class="space-y-4">
             <!-- Username Input -->
             <div class="space-y-2">
                 <input type="text" placeholder="Username"
-                    class="w-full h-[60px] px-5 rounded-[5px] border border-[#e2e2e2] text-[17px] font-extrabold text-[#c0c0c0] focus:outline-none focus:border-[#2553e9]">
+                    class="w-full h-[60px] px-5 rounded-[5px] border border-[#e2e2e2] text-[17px] font-extrabold ext-black placeholder-[#c0c0c0] focus:outline-none focus:border-[#2553e9]">
             </div>
 
             <!-- Password Input -->
             <div class="space-y-2">
-                <input type="password" placeholder="Password"
-                    class="w-full h-[60px] px-5 rounded-[5px] border border-[#e2e2e2] text-[17px] font-extrabold text-[#c0c0c0] focus:outline-none focus:border-[#2553e9]">
+                <div class="relative">
+                    <input id="password" type="password" placeholder="Password"
+                        class="w-full h-[60px] px-5 rounded-[5px] border border-[#e2e2e2] text-[17px] font-extrabold ext-black placeholder-[#c0c0c0] focus:outline-none focus:border-[#2553e9]">
+                    <button type="button" class="absolute inset-y-0 right-4 flex items-center" onclick="togglePassword()">
+                        <img id="toggleViewIcon" src="public/asset/view.png" class="w-[20px]">
+                    </button>
+                </div>
             </div>
 
             <!-- Remember Me and Forget Password -->
@@ -64,10 +69,11 @@
 
         <!-- Sign Up Link -->
         <div class="text-center mt-4">
-            <span class="text-[13px] font-semibold text-[#626262]">New user?</span>
-            <a href="#" class="text-[13px] font-semibold text-[#2553e9] ml-2">Sign Up</a>
+            <span class="text-[13px] font-semibold text-[#626262]">Don't have an account?</span>
+            <a href="signup.html" class="text-[13px] font-bold text-[#2553e9] ml-2">Sign Up</a>
         </div>
     </div>
 </body>
 
+<script src="public/scripts/authentication.js"></script>
 </html>
