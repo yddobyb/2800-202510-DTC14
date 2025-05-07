@@ -1,4 +1,4 @@
-# scrape_pdf_rates.py
+
 
 import io
 import requests
@@ -12,15 +12,12 @@ def scrape_parking_rates():
     extract the zones/rates table (Schedule A), and return
     a mapping { zone_name: rate_text }.
     """
-    # 1) Download PDF into memory
     resp = requests.get(BYLAW_PDF_URL)
     resp.raise_for_status()
     pdf_bytes = resp.content
 
     rates = {}
-    # 2) Open with pdfplumber.open, not load
     with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-        # Scan the first few pages for the rate table
         for page in pdf.pages[:3]:
             for table in page.extract_tables():
                 headers = [h.strip().lower() for h in table[0]]

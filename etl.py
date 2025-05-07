@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 """
 etl.py
 
-1. Fetches live parking‑meter records from Vancouver’s Open Data Portal
+1. Fetches live parking‑meter records from Vancouver’s Open Data API
 2. Normalizes into a DataFrame and extracts meterid, time limits, coords
 3. Loads your manual meter_rates.csv (keyed by meterid) and merges rates
 4. Creates parking_meters table (with PRIMARY KEY on meterid) in MySQL
@@ -15,7 +14,6 @@ import requests
 import pandas as pd
 from sqlalchemy import create_engine, text
 
-# ─── 1) Load environment variables ───────────────────────────
 load_dotenv()
 DB_URL   = (
     f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@"
@@ -23,7 +21,6 @@ DB_URL   = (
 )
 DB_SSL_CA = os.getenv("DB_SSL_CA", "./public/aiven-ca.pem")
 
-# ─── 2) Fetch parking‑meters from Socrata ─────────────────────
 resp = requests.get(
     "https://opendata.vancouver.ca/api/records/1.0/search/",
     params={"dataset": "parking-meters", "rows": 5000},
@@ -32,7 +29,6 @@ resp = requests.get(
 resp.raise_for_status()
 records = resp.json()["records"]
 
-# ─── 3) Normalize JSON → DataFrame, extract fields ───────────
 df = pd.json_normalize(records)
 df["longitude"]      = df["geometry.coordinates"].apply(lambda c: c[0])
 df["latitude"]       = df["geometry.coordinates"].apply(lambda c: c[1])
@@ -48,7 +44,7 @@ df_meters = df[[
     "latitude"
 ]]
 
-# ─── 4) Load your manual meter_rates.csv and merge on meterid ──
+
 df_rates = pd.read_csv("meter_rates.csv", dtype={"meterid": str, "rate": str})
 df_joined = pd.merge(
     df_meters,
@@ -57,11 +53,9 @@ df_joined = pd.merge(
     how="left"
 ).fillna({"rate": "—"})
 
-# ─── 5) Write to MySQL with PRIMARY KEY on meterid ────────────
 engine = create_engine(DB_URL, connect_args={ "ssl": { "ca": DB_SSL_CA } })
 
 with engine.begin() as conn:
-    # Drop and recreate the table with meterid as primary key
     conn.execute(text("DROP TABLE IF EXISTS parking_meters"))
     conn.execute(text("""
       CREATE TABLE parking_meters (
@@ -74,6 +68,5 @@ with engine.begin() as conn:
       )
     """))
 
-# Bulk insert all rows
 df_joined.to_sql("parking_meters", engine, if_exists="append", index=False)
 print(f"✅ Loaded {len(df_joined)} records into parking_meters")
