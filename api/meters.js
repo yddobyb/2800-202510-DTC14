@@ -26,7 +26,7 @@ router.get('/', async (req, res, next) => {
         const [rows] = await pool.query(`
       SELECT
         meterid      AS id,
-        street_name           AS street,
+        meterid    AS street,
         weekday_limit         AS weekday,
         weekend_limit         AS weekend,
         rate,
