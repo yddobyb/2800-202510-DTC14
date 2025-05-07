@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ParkSmart — Live Meter Rates</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <!-- Mapbox GL JS CSS -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #map {
+            position: absolute;
+            inset: 0;
+        }
+    </style>
+</head>
+
+<body class="bg-white flex items-center justify-center min-h-screen">
+    <!-- Mobile frame container -->
+    <div class="w-[440px] h-[956px] bg-white relative overflow-hidden">
+
+        <!-- 1) Map underlay -->
+        <div id="map" class="absolute inset-0 z-0"></div>
+
+        <!-- 2) Top gradient & overlays -->
+        <div class="absolute top-0 left-0 w-full z-10">
+            <div class="h-[111px] bg-[#EBEBEB]"></div>
+            <div class="h-[270px] bg-gradient-to-b from-[#EBEBEB] to-transparent"></div>
+
+            <!-- Search Bar / Filter Icon -->
+            <div class="absolute top-[30px] left-[30px] flex space-x-2 z-30 items-center">
+                <!-- Search Input + Button -->
+                <div class="w-[308px] h-[55px] bg-white rounded-[15px] flex items-center pl-5">
+                    <input type="text" placeholder="Search Location"
+                        class="w-[80%] text-[18px] text-[#6E6E6E] outline-none" />
+                    <div
+                        class="w-[45px] h-[45px] bg-[#2553E9] rounded-[15px] flex items-center justify-center ml-[8px]">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <!-- Filter Icon & Panel -->
+                <div class="relative">
+                    <button id="filter-icon"
+                        class="bg-white w-[55px] h-[55px] rounded-[15px] flex items-center justify-center">
+                        <img src="./asset/sliders.png" alt="Filter" class="w-[27px] h-[27px]">
+                    </button>
+                    <div id="filter-panel"
+                        class="hidden fixed top-[95px] right-[30px] w-[368px] bg-white rounded-[24px] shadow-lg p-6 z-50 overflow-y-auto"
+                        style="max-height: calc(100vh - 6rem);">
+                        <h2 class="text-[18px] font-bold mb-2">Parking Duration</h2>
+                        <div class="flex items-center justify-between bg-blue-50 rounded-xl p-4 mb-7">
+                            <div class="relative dropdown w-1/2">
+                                <button id="weekdayBtn"
+                                    class="w-full rounded-[15px] px-3 py-2 text-[#2553e9] text-[18px] font-medium flex justify-between items-center">
+                                    Weekday
+                                    <svg class="w-4 h-4 ml-2 inline" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <ul id="weekdayMenu"
+                                    class="dropdown-menu absolute left-0 w-full bg-white border border-gray-200 rounded-[10px] mt-1 shadow hidden z-10">
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">Weekday</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">Weekend</li>
+                                </ul>
+                            </div>
+                            <img src="asset/logo_black.png" class="w-[50px] h-[50px]">
+                            <div class="relative dropdown w-1/2">
+                                <button id="hourBtn"
+                                    class="w-full rounded-[15px] px-3 py-2 text-[#2553e9] text-[18px] font-medium flex justify-between items-center ml-[10px]">
+                                    1 hour
+                                    <svg class="w-4 h-4 ml-2 inline" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <ul id="hourMenu"
+                                    class="dropdown-menu absolute left-0 w-full bg-white border border-gray-200 rounded-[10px] mt-1 shadow hidden z-10">
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">1 hour</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">2 hours</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">3 hours</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">4 hours</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Parking Fee Range -->
+                        <h2 class="text-[18px] font-bold">Parking Fee Range</h2>
+                        <div class="relative mb-6">
+                            <input id="feeSlider" type="range" min="1" max="10" value="10"
+                                class="w-full h-2 rounded-lg accent-[#2553E9]" />
+                            <div id="sliderBubble"
+                                class="absolute top-full mt-2 bg-[#2553E9] text-white text-base font-semibold pointer-events-none whitespace-nowrap">
+                            </div>
+                        </div>
+
+                        <button
+                            class="w-full h-10 bg-white border border-[#9bb1ff] rounded-[5px] text-[#2553e9] font-medium mt-14">
+                            Reset Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Tags -->
+            <div class="absolute top-[107px] left-[34px] flex space-x-4 z-20">
+                <div class="h-[33px] px-4 bg-white rounded-[15px] flex items-center">
+                    <span class="text-[15px] text-[#6E6E6E]">Motorcycle-only</span>
+                </div>
+                <div class="h-[33px] px-4 bg-white rounded-[15px] flex items-center">
+                    <span class="text-[15px] text-[#6E6E6E]">Disability Zones</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3) Bottom Navigation Bar -->
+        <div class="absolute bottom-0 left-0 w-full h-[113px] bg-white z-10">
+            <div class="flex justify-around items-center h-full px-8">
+                <!-- Map Tab -->
+                <div class="flex flex-col items-center">
+                    <svg class="w-6 h-6 text-[#2553E9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    <span class="text-[16px] text-[#2553E9] mt-2">Map</span>
+                </div>
+                <!-- Status Tab -->
+                <div class="flex flex-col items-center">
+                    <svg class="w-6 h-6 text-[#6E6E6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <span class="text-[16px] text-[#6E6E6E] mt-2">Status</span>
+                </div>
+                <!-- Favorite Tab -->
+                <div class="flex flex-col items-center">
+                    <svg class="w-6 h-6 text-[#6E6E6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <span class="text-[16px] text-[#6E6E6E] mt-2">Favorite</span>
+                </div>
+                <!-- Setting Tab -->
+                <div class="flex flex-col items-center">
+                    <svg class="w-6 h-6 text-[#6E6E6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span class="text-[16px] text-[#6E6E6E] mt-2">Setting</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mapbox GL JS -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZ21raWQ2ODQxIiwiYSI6ImNtYTNnM3Z0YTJ2eDkyanBzMHE0OGplam8ifQ.8MqZ0jzjVMA1J_tCCwKW-g';
+
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [-123.1207, 49.2827],
+            zoom: 13
+        });
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+        async function fetchMeters() {
+            const res = await fetch('/api/meters');
+            if (!res.ok) throw new Error('Failed to fetch /api/meters');
+            const { meters } = await res.json();
+            return meters;
+        }
+
+        map.on('load', async () => {
+            try {
+                const meters = await fetchMeters();
+                meters.forEach(({ coords, street, rate }) => {
+                    new mapboxgl.Marker()
+                        .setLngLat(coords)
+                        .setPopup(
+                            new mapboxgl.Popup({ offset: 25 })
+                                .setHTML(`<strong>${street}</strong><br/>Fee: ${rate}`)
+                        )
+                        .addTo(map);
+                });
+                console.log(`Placed ${meters.length} meter pins.`);
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    </script>
+
+    <!-- Filter panel behavior -->
+    <script src="./scripts/filter.js"></script>
+</body>
+
+</html>
