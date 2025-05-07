@@ -90,7 +90,59 @@
                     <div id="filter-panel"
                         class="hidden absolute top-[70px] right-0 w-[371px] bg-white rounded-[24px] shadow-lg p-6 z-50 overflow-y-auto"
                         style="max-height: calc(100vh - 6rem);">
-                        <!-- filter panel content -->
+                        <h2 class="text-[18px] font-bold mb-2">Parking Duration</h2>
+                        <div class="flex items-center justify-between bg-blue-50 rounded-xl p-4 mb-7">
+                            <div class="relative dropdown w-1/2">
+                                <button id="weekdayBtn"
+                                    class="w-full rounded-[15px] pr-3 py-2 text-[#2553e9] text-[18px] font-medium flex justify-between items-center">
+                                    Weekday
+                                    <svg class="w-4 h-4 ml-2 inline" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <ul id="weekdayMenu"
+                                    class="dropdown-menu absolute left-0 w-full bg-white border border-gray-200 rounded-[10px] mt-1 shadow hidden z-10">
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">Weekday</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">Weekend</li>
+                                </ul>
+                            </div>
+                            <img src="asset/logo_black.png" class="w-[50px] h-[50px]">
+                            <div class="relative dropdown w-1/2">
+                                <button id="hourBtn"
+                                    class="w-full rounded-[15px] px-3 py-2 text-[#2553e9] text-[18px] font-medium flex justify-between items-center ml-[10px]">
+                                    1 hour
+                                    <svg class="w-4 h-4 ml-2 inline" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <ul id="hourMenu"
+                                    class="dropdown-menu absolute left-0 w-full bg-white border border-gray-200 rounded-[10px] mt-1 shadow hidden z-10">
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">1 hour</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">2 hours</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">3 hours</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">4 hours</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Parking Fee Range -->
+                        <h2 class="text-[18px] font-bold">Parking Fee Range</h2>
+                        <div class="relative mb-6">
+                            <input id="feeSlider" type="range" min="1" max="10" value="10"
+                                class="w-full h-2 rounded-lg accent-[#2553E9]" />
+                            <div id="sliderBubble"
+                                class="absolute top-full mt-2 bg-[#2553E9] text-white text-base font-semibold pointer-events-none whitespace-nowrap">
+                            </div>
+                        </div>
+
+                        <button
+                            class="w-full h-10 bg-white border border-[#9bb1ff] rounded-[5px] text-[#2553e9] font-medium mt-14">
+                            Reset Filters
+                        </button>
                     </div>
                 </div>
             </div>
@@ -105,15 +157,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Current Location Button -->
-        <button id="locate-btn"
-            class="absolute bottom-[130px] right-[30px] z-20 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-[#2553E9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 8v4m0 0v4m0-4h4m-4 0H8m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-        </button>
 
         <!-- 3) Bottom Navigation Bar -->
         <div class="absolute bottom-0 left-0 w-full h-[113px] bg-white z-10">
@@ -155,7 +198,6 @@
             </div>
         </div>
     </div>
-    </div>
 
     <!-- Mapbox GL JS -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
@@ -170,55 +212,29 @@
         });
         map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-        // Load meter pins
         async function fetchMeters() {
             const res = await fetch('/api/meters');
             if (!res.ok) throw new Error('Failed to fetch /api/meters');
             const { meters } = await res.json();
             return meters;
         }
+
         map.on('load', async () => {
             try {
                 const meters = await fetchMeters();
                 meters.forEach(({ coords, street, rate }) => {
                     new mapboxgl.Marker()
                         .setLngLat(coords)
-                        .setPopup(new mapboxgl.Popup({ offset: 25 })
-                            .setHTML(`<strong>${street}</strong><br/>Fee: ${rate}`))
+                        .setPopup(
+                            new mapboxgl.Popup({ offset: 25 })
+                                .setHTML(`<strong>${street}</strong><br/>Fee: ${rate}`)
+                        )
                         .addTo(map);
                 });
+                console.log(`Placed ${meters.length} meter pins.`);
             } catch (err) {
                 console.error(err);
             }
-        });
-
-        // Current Location Button Handler
-        document.getElementById('locate-btn').addEventListener('click', () => {
-            console.log('Locate button clicked');
-            if (!navigator.geolocation) {
-                alert('Geolocation is not supported by your browser.');
-                return;
-            }
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { longitude, latitude } = position.coords;
-                    console.log('Current position:', longitude, latitude);
-                    // Create blue dot
-                    const dot = document.createElement('div');
-                    Object.assign(dot.style, {
-                        width: '12px',
-                        height: '12px',
-                        backgroundColor: '#2553E9',
-                        borderRadius: '50%',
-                        boxShadow: '0 0 6px rgba(0,0,0,0.3)'
-                    });
-                    new mapboxgl.Marker({ element: dot })
-                        .setLngLat([longitude, latitude])
-                        .addTo(map);
-                    map.flyTo({ center: [longitude, latitude], zoom: 15 });
-                },
-                (err) => { console.error('Geolocation error:', err); alert(err.message); }
-            );
         });
     </script>
 
