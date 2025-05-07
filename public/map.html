@@ -83,14 +83,60 @@
                 </div>
                 <!-- Filter Icon & Panel -->
                 <div class="relative">
-                    <button id="filter-icon"
-                        class="bg-white w-[55px] h-[55px] rounded-[15px] flex items-center justify-center">
+                    <button id="filter-icon" class="bg-white w-[55px] h-[55px] rounded-[15px] flex items-center justify-center">
                         <img src="./asset/sliders.png" alt="Filter" class="w-[27px] h-[27px]">
                     </button>
                     <div id="filter-panel"
                         class="hidden absolute top-[70px] right-0 w-[371px] bg-white rounded-[24px] shadow-lg p-6 z-50 overflow-y-auto"
                         style="max-height: calc(100vh - 6rem);">
-                        <!-- filter panel content -->
+                        <h2 class="text-[18px] font-bold mb-2">Parking Duration</h2>
+                        <div class="flex items-center justify-between bg-blue-50 rounded-xl p-4 mb-7">
+                            <div class="relative dropdown w-1/2">
+                                <button id="weekdayBtn"
+                                    class="w-full rounded-[15px] pr-3 py-2 text-[#2553e9] text-[18px] font-medium flex justify-between items-center">
+                                    Weekday
+                                    <svg class="w-4 h-4 ml-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <ul id="weekdayMenu"
+                                    class="dropdown-menu absolute left-0 w-full bg-white border border-gray-200 rounded-[10px] mt-1 shadow hidden z-10">
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">Weekday</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">Weekend</li>
+                                </ul>
+                            </div>
+                            <img src="asset/logo_black.png" class="w-[50px] h-[50px]">
+                            <div class="relative dropdown w-1/2">
+                                <button id="hourBtn"
+                                    class="w-full rounded-[15px] px-3 py-2 text-[#2553e9] text-[18px] font-medium flex justify-between items-center ml-[10px]">
+                                    1 hour
+                                    <svg class="w-4 h-4 ml-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <ul id="hourMenu"
+                                    class="dropdown-menu absolute left-0 w-full bg-white border border-gray-200 rounded-[10px] mt-1 shadow hidden z-10">
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">1 hour</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">2 hours</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">3 hours</li>
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">4 hours</li>
+                                </ul>
+                            </div>
+                        </div>
+                
+                        <!-- Parking Fee Range -->
+                        <h2 class="text-[18px] font-bold">Parking Fee Range</h2>
+                        <div class="relative mb-6">
+                            <input id="feeSlider" type="range" min="1" max="10" value="10"
+                                class="w-full h-2 rounded-lg accent-[#2553E9]" />
+                            <div id="sliderBubble"
+                                class="absolute top-full mt-2 bg-[#2553E9] text-white text-base font-semibold pointer-events-none whitespace-nowrap">
+                            </div>
+                        </div>
+                
+                        <button class="w-full h-10 bg-white border border-[#9bb1ff] rounded-[5px] text-[#2553e9] font-medium mt-14">
+                            Reset Filters
+                        </button>
                     </div>
                 </div>
             </div>
@@ -160,7 +206,7 @@
     <!-- Mapbox GL JS -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script>
-        mapboxgl.accessToken = 'pk.eyJ1IjoiZ21raWQ2ODQxIiwiYSI6ImNtYTNnM3Z0YTJ2eDkyanBzMHE0OGplam8ifQ.8MqZ0jzjVMA1J_tCCwKW-g';
+        mapboxgl.accessToken = '';
 
         const map = new mapboxgl.Map({
             container: 'map',
