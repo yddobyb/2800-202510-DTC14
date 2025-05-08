@@ -14,15 +14,15 @@
     </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center">
-    <div class="w-[390px] h-[844px] overflow-hidden">
+<body class="bg-white flex items-center justify-center min-h-screen">
+    <div class="w-[440px] h-[956px] bg-white relative overflow-hidden">
         <!-- Header -->
-        <header class="w-full h-[120px] flex items-center justify-center">
+        <div class="w-full h-[120px] flex items-center justify-center">
             <h1 class="text-3xl font-bold">Settings</h1>
-        </header>
+        </div>
 
         <!-- Main Content -->
-        <main class="p-5 space-y-4">
+        <div class="p-5 space-y-4">
             <!-- Profile Card -->
             <div class="bg-[#EDEDED] rounded-2xl p-5 flex items-center space-x-4">
                 <div class="w-16 h-16 bg-[#4D4E52] rounded-full flex items-center justify-center">
@@ -83,13 +83,35 @@
                     </label>
                 </div>
             </div>
-        </main>
+        </div>
         <!-- Bottom Navigation Bar -->
         <div id="navigation"
             class="absolute bottom-0 left-0 w-full h-[113px] bg-white z-10 rounded-t-[40px] p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.4)]">
+            <div class="flex justify-between items-center h-full px-4">
+                <!-- Map Tab -->
+                <a href="./map.html" class="nav-item flex flex-col items-center" data-type="Map">
+                    <img src="./asset/grayMap.png" class="w-[30px]">
+                    <span class="text-[16px] text-[#6E6E6E] mt-2">Map</span>
+                </a>
+                <!-- Favorite Tab -->
+                <a href="#" class="nav-item flex flex-col items-center" data-type="Favorite">
+                    <img src="./asset/grayFavorite.png" class="w-[30px]">
+                    <span class="text-[16px] text-[#6E6E6E] mt-2">Favorite</span>
+                </a>
+                <!-- Status Tab -->
+                <a href="#" class="nav-item flex flex-col items-center" data-type="Status">
+                    <img src="./asset/grayStatus.png" class="w-[26px]">
+                    <span class="text-[16px] text-[#6E6E6E] mt-2">Status</span>
+                </a>
+                <!-- Setting Tab -->
+                <a href="./setting.html" class="nav-item flex flex-col items-center" data-type="Setting">
+                    <img src="./asset/graySetting.png" class="w-[30px]">
+                    <span class="text-[16px] text-[#6E6E6E] mt-2">Setting</span>
+                </a>
+            </div>
+
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="scripts/navigation_bar.js"></script>
 </body>
 
