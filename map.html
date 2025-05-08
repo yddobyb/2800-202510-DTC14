@@ -18,16 +18,9 @@
             overflow: hidden;
         }
 
-        #map {
-            width: 100%;
-            height: 100%;
-        }
-
-        .map-placeholder {
-            background-image: url('https://via.placeholder.com/550x700.png?text=Map+Area');
-            background-size: cover;
-            background-position: center;
-            background-color: #e0e0e0;
+        .dropdown-content {
+            max-height: 200px;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -49,7 +42,7 @@
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                 </button>
-                <button
+                <button id="openFilterModalBtn"
                     class="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 flex items-center justify-center border border-gray-300">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg">
@@ -108,6 +101,88 @@
             </div>
         </div>
 
+        <div id="filterModal" class="fixed inset-0 bg-gray-800 bg-opacity-60 overflow-y-auto h-full w-full flex items-center justify-center hidden z-30">
+            <div class="p-6 border shadow-2xl rounded-2xl bg-white w-auto max-w-lg mx-auto">
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-1">Parking Duration</h3>
+                        <div class="p-4 bg-blue-50 rounded-xl flex items-center justify-between space-x-3">
+                            <div id="dayDropdown" class="relative">
+                                <div class="dropdown-header flex items-center space-x-1 text-blue-600 cursor-pointer">
+                                    <span class="day-display-text">Weekday</span>
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                </div>
+                                <div class="dropdown-content absolute left-0 mt-1 z-10 bg-white border border-gray-200 rounded-lg shadow-lg hidden w-36">
+                                    <div class="day-option p-2 hover:bg-blue-100 cursor-pointer">Monday</div>
+                                    <div class="day-option p-2 hover:bg-blue-100 cursor-pointer">Tuesday</div>
+                                    <div class="day-option p-2 hover:bg-blue-100 cursor-pointer">Wednesday</div>
+                                    <div class="day-option p-2 hover:bg-blue-100 cursor-pointer">Thursday</div>
+                                    <div class="day-option p-2 hover:bg-blue-100 cursor-pointer">Friday</div>
+                                    <div class="day-option p-2 hover:bg-blue-100 cursor-pointer">Weekend</div>
+                                    <div class="day-option p-2 hover:bg-blue-100 cursor-pointer">Saturday</div>
+                                    <div class="day-option p-2 hover:bg-blue-100 cursor-pointer">Sunday</div>
+                                    <div class="day-option p-2 hover:bg-blue-100 cursor-pointer">Weekday</div>
+                                    <div class="day-option p-2 hover:bg-blue-100 cursor-pointer">Any day</div>
+                                </div>
+                            </div>
+                            
+                            <svg class="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.599 4.5h4.802c1.196 0 2.24.804 2.547 1.974l.768 3.072H5.284l.768-3.072C6.36 5.304 7.403 4.5 8.599 4.5zM5.483 10.5H18.517l-.727 2.908a3.001 3.001 0 01-2.837 2.092H8.047a3.001 3.001 0 01-2.837-2.092L4.483 10.5z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm-6 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.25 7.532a4.759 4.759 0 00-1.902-.995M9.75 7.532a4.759 4.759 0 011.902-.995"></path>
+                                <rect x="15.5" y="5.5" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"></rect>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.5 6.5V4.063c0-.61-.352-1.167-.886-1.433"></path>
+                            </svg>
+                            
+                            <div id="hourDropdown" class="relative">
+                                <div class="dropdown-header flex items-center space-x-1 text-blue-600 cursor-pointer">
+                                    <span class="hour-display-text">1 hour</span>
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                </div>
+                                <div class="dropdown-content absolute right-0 mt-1 z-10 bg-white border border-gray-200 rounded-lg shadow-lg hidden w-36">
+                                    <div class="hour-option p-2 hover:bg-blue-100 cursor-pointer">30 minutes</div>
+                                    <div class="hour-option p-2 hover:bg-blue-100 cursor-pointer">1 hour</div>
+                                    <div class="hour-option p-2 hover:bg-blue-100 cursor-pointer">2 hours</div>
+                                    <div class="hour-option p-2 hover:bg-blue-100 cursor-pointer">3 hours</div>
+                                    <div class="hour-option p-2 hover:bg-blue-100 cursor-pointer">4 hours</div>
+                                    <div class="hour-option p-2 hover:bg-blue-100 cursor-pointer">Half day</div>
+                                    <div class="hour-option p-2 hover:bg-blue-100 cursor-pointer">Full day</div>
+                                    <div class="hour-option p-2 hover:bg-blue-100 cursor-pointer">Overnight</div>
+                                    <div class="hour-option p-2 hover:bg-blue-100 cursor-pointer">Any duration</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-3">Parking Fee Range</h3>
+                        <div class="relative pt-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <span id="feeValueDisplay" class="absolute inline-block bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-md transform -translate-x-1/2" style="left: 2%; top: -0.5rem;">
+                                    $1
+                                </span>
+                            </div>
+                            <input id="feeRangeSlider" type="range" min="1" max="20" value="1" step="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>$1</span>
+                                <span>$5</span>
+                                <span>$10</span>
+                                <span>$15</span>
+                                <span>$20</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="filterModalResetBtn" class="w-full py-3 px-4 border border-blue-600 text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-colors text-lg">
+                        Reset Filters
+                    </button>
+                    <button id="filterModalSaveBtn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors text-lg">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="fixed bottom-0 inset-x-0 w-[550px] mx-auto bg-white rounded-t-2xl shadow-lg flex justify-around items-center px-8 py-4 z-20"
             style="border-top: 1px solid #e5e7eb;">
             <div class="flex flex-col items-center text-blue-600">
@@ -141,16 +216,7 @@
         </div>
     </div>
 
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-    <script>
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [-123.1207, 49.2827],
-            zoom: 13
-        });
-        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-    </script>
+    <script src="filter.js"></script>
 </body>
 
 </html>
