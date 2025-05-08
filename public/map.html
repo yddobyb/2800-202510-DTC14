@@ -154,14 +154,25 @@
             </div>
         </div>
 
-        <!-- Current Location Button -->
-        <button id="locate-btn"
-            class="absolute bottom-[130px] right-[30px] z-20 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-[#2553E9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 8v4m0 0v4m0-4h4m-4 0H8m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-        </button>
+        <div class="absolute bottom-[140px] right-[30px] z-20 flex flex-col items-center space-y-4">
+            <!-- Current Location Button -->
+            <button id="locate-btn"
+                class="w-[66px] h-[66px] bg-white rounded-full shadow-[0_4px_6px_-1px_rgba(0,0,0,0.4)] flex items-center justify-center">
+                <img src="asset/current.png" class="w-[30px]" alt="Current Location" />
+            </button>
+        
+            <!-- Scan QR Button -->
+            <button id="scan-btn"
+                class="w-[66px] h-[66px] bg-white rounded-full shadow-[0_4px_6px_-1px_rgba(0,0,0,0.4)] flex items-center justify-center">
+                <img src="asset/scan.png" class="w-[35px]" alt="Scan QR" />
+            </button>
+        
+            <!-- Heat-Map Button -->
+            <button id="heatmap-btn"
+                class="w-[66px] h-[66px] bg-white rounded-full shadow-[0_4px_6px_-1px_rgba(0,0,0,0.4)] border-4 border-transparent flex items-center justify-center">
+                <img src="asset/heatmap.png" class="w-[50px]" alt="Alert" />
+            </button>
+        </div>
 
         <!-- 3) Bottom Navigation Bar -->
         <div id="navigation" class="absolute bottom-0 left-0 w-full h-[113px] bg-white z-10 rounded-t-[40px] p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.4)]">
@@ -225,40 +236,12 @@
                 console.error(err);
             }
         });
-
-        // Current Location Button Handler
-        document.getElementById('locate-btn').addEventListener('click', () => {
-            console.log('Locate button clicked');
-            if (!navigator.geolocation) {
-                alert('Geolocation is not supported by your browser.');
-                return;
-            }
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { longitude, latitude } = position.coords;
-                    console.log('Current position:', longitude, latitude);
-                    // Create blue dot
-                    const dot = document.createElement('div');
-                    Object.assign(dot.style, {
-                        width: '12px',
-                        height: '12px',
-                        backgroundColor: '#2553E9',
-                        borderRadius: '50%',
-                        boxShadow: '0 0 6px rgba(0,0,0,0.3)'
-                    });
-                    new mapboxgl.Marker({ element: dot })
-                        .setLngLat([longitude, latitude])
-                        .addTo(map);
-                    map.flyTo({ center: [longitude, latitude], zoom: 15 });
-                },
-                (err) => { console.error('Geolocation error:', err); alert(err.message); }
-            );
-        });
     </script>
 
     <!-- Filter panel behavior -->
     <script src="./scripts/filter.js"></script>
     <script src="scripts/navigation_bar.js"></script>
+    <script src="scripts/action_btn.js"></script>
 </body>
 
 </html>
