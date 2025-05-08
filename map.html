@@ -38,6 +38,24 @@
             max-height: 200px;
             overflow-y: auto;
         }
+        
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-indicator.hidden {
+            display: none;
+        }
+        
+        .parking-marker {
+            transition: transform 0.2s ease;
+        }
+        
+        .parking-marker:hover {
+            transform: scale(1.2);
+        }
     </style>
 </head>
 
@@ -219,6 +237,7 @@
         </div>
     </div>
 
+    <script src="api.js"></script>
     <script src="map.js"></script>
     <script src="filter.js"></script>
 </body>

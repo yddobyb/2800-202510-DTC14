@@ -4,27 +4,35 @@ const DEFAULT_LIMIT = 1000;
 
 async function fetchParkingMeters(params = {}) {
   try {
-    const url = new URL(PARKING_METERS_ENDPOINT);
-    
-    url.searchParams.append('limit', params.limit || DEFAULT_LIMIT);
+    // Use a more standardized way to construct the URL to avoid encoding issues
+    let apiUrl = `${PARKING_METERS_ENDPOINT}?limit=${params.limit || DEFAULT_LIMIT}`;
     
     if (params.offset) {
-      url.searchParams.append('offset', params.offset);
+      apiUrl += `&offset=${params.offset}`;
     }
     
     if (params.where) {
-      url.searchParams.append('where', params.where);
+      apiUrl += `&where=${encodeURIComponent(params.where)}`;
     }
     
     if (params.refine) {
       Object.entries(params.refine).forEach(([key, value]) => {
-        url.searchParams.append(`refine.${key}`, value);
+        apiUrl += `&refine.${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
       });
     }
     
-    const response = await fetch(url.toString());
+    console.log(`Fetching parking data from: ${apiUrl}`);
+    
+    // Add proper headers to the request
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
     
     if (!response.ok) {
+      console.error(`API Error: ${response.status}`, await response.text());
       throw new Error(`API Error: ${response.status}`);
     }
     
@@ -32,7 +40,7 @@ async function fetchParkingMeters(params = {}) {
     return data.results || [];
   } catch (error) {
     console.error('Failed to fetch parking meters:', error);
-    return [];
+    
   }
 }
 
@@ -141,11 +149,3 @@ function filterParkingByTime(parkingData, timeOfDay, dayType) {
   });
 }
 
-export {
-  fetchParkingMeters,
-  parseParkingData,
-  searchParkingByLocation,
-  filterParkingByPrice,
-  filterParkingByType,
-  filterParkingByTime
-}; 
