@@ -162,31 +162,7 @@
         </button>
 
         <!-- 3) Bottom Navigation Bar -->
-        <div class="absolute bottom-0 left-0 w-full h-[113px] bg-white z-10 rounded-t-[40px] p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.4)]">
-            <div class="flex justify-between items-center h-full px-4">
-                <!-- Map Tab -->
-                <div class="flex flex-col items-center">
-                    <img src="./asset/blueMap.png" class="w-[30px]">
-                    <span class="text-[16px] text-[#2553E9] mt-2">Map</span>
-                </div>
-                <!-- Favorite Tab -->
-                <div class="flex flex-col items-center">
-                    <img src="./asset/grayFavorite.png" class="w-[30px]">
-                    <span class="text-[16px] text-[#6E6E6E] mt-2">Favorite</span>
-                </div>
-                <!-- Status Tab -->
-                <div class="flex flex-col items-center">
-                    <img src="./asset/grayStatus.png" class="w-[26px]">
-                    <span class="text-[16px] text-[#6E6E6E] mt-2">Status</span>
-                </div>
-                <!-- Setting Tab -->
-                <div class="flex flex-col items-center">
-                    <img src="./asset/graySetting.png" class="w-[30px]">
-                    <span class="text-[16px] text-[#6E6E6E] mt-2">Setting</span>
-                </div>
-            </div>
-        </div>
-    </div>
+        <div id="navigation" class="absolute bottom-0 left-0 w-full h-[113px] bg-white z-10 rounded-t-[40px] p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.4)]"></div>
     </div>
 
     <!-- Mapbox GL JS -->
@@ -256,6 +232,8 @@
 
     <!-- Filter panel behavior -->
     <script src="./scripts/filter.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="scripts/navigation_bar.js"></script>
 </body>
 
 </html>
