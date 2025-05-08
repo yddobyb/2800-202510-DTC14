@@ -70,3 +70,27 @@ document.addEventListener('click', function () {
     weekdayMenu.classList.add('hidden');
     hourMenu.classList.add('hidden');
 });
+
+const btns = document.querySelectorAll('.toggle-btn');
+
+btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const willActivate = !btn.classList.contains('border-blue-500');
+
+        btns.forEach(b => {
+            b.classList.replace('border-blue-500', 'border-transparent');
+            b.querySelector('span')
+                .classList.replace('text-blue-500', 'text-[#6E6E6E]');
+            b.querySelector('img')
+                .src = `asset/gray${b.dataset.type}.png`;
+        });
+
+        if (willActivate) {
+            btn.classList.replace('border-transparent', 'border-blue-500');
+            btn.querySelector('span')
+                .classList.replace('text-[#6E6E6E]', 'text-blue-500');
+            btn.querySelector('img')
+                .src = `asset/blue${btn.dataset.type}.png`;
+        }
+    });
+});
