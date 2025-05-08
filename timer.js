@@ -1,11 +1,26 @@
 document.addEventListener('DOMContentLoaded', () => {
     const timerDisplayCircle = document.getElementById('timerDisplay');
     const timeLeftDisplayDetail = document.getElementById('timeLeftDisplay');
+    const totalCostDisplay = document.getElementById('totalCostDisplay'); 
     const stopParkingButton = document.getElementById('stopParkingBtn');
     const extendTimeButton = document.getElementById('extendTimeBtn');
-    
-    let totalSeconds = 23 * 60; 
-    let timerInterval;
+
+    const extendTimeModal = document.getElementById('extendTimeModal');
+    const modalTimeToAddDisplay = document.getElementById('modalTimeToAdd');
+    const modalAdditionalCostDisplay = document.getElementById('modalAdditionalCost');
+    const modalManualTimeDisplay = document.getElementById('modalManualTimeDisplay');
+    const modalQuickAddButtons = document.querySelectorAll('.modal-add-time-btn');
+    const modalIncrementTimeBtn = document.getElementById('modalIncrementTimeBtn');
+    const modalDecrementTimeBtn = document.getElementById('modalDecrementTimeBtn');
+    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+    let totalSeconds = 23 * 60;
+    let timerInterval = null; 
+    let currentParkingCost = 5.80; 
+    const costPerMinute = 0.10;
+
+    let currentModalMinutesToAdd = 0;
 
     function formatTimeForCircle(seconds) {
         const minutes = Math.floor(seconds / 60);
@@ -25,64 +40,137 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${minutes} min`;
     }
 
-    function updateDisplay() {
+    function formatCurrency(amount) {
+        return `$${amount.toFixed(2)}`;
+    }
+
+    function updateMainDisplay() {
         timerDisplayCircle.textContent = formatTimeForCircle(totalSeconds);
         timeLeftDisplayDetail.textContent = formatTimeForDetail(totalSeconds);
+        totalCostDisplay.textContent = formatCurrency(currentParkingCost);
 
         if (totalSeconds <= 0) {
             clearInterval(timerInterval);
+            timerInterval = null; 
             timerDisplayCircle.textContent = "0:00";
             timeLeftDisplayDetail.textContent = "Expired";
-            if(stopParkingButton) stopParkingButton.disabled = true;
-            if(extendTimeButton) extendTimeButton.disabled = true;
-            if(extendTimeButton) extendTimeButton.classList.add('opacity-50', 'cursor-not-allowed');
-            if(stopParkingButton) stopParkingButton.classList.add('opacity-50', 'cursor-not-allowed');
+     
+            stopParkingButton.disabled = true;
+            stopParkingButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+
+            if (!stopParkingButton.textContent.includes('STOPPED')) { 
+                extendTimeButton.disabled = true;
+                extendTimeButton.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+        } else { 
+            stopParkingButton.disabled = false;
+            extendTimeButton.disabled = false;
+            extendTimeButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            stopParkingButton.classList.remove('opacity-50', 'cursor-not-allowed');
         }
     }
 
     function startTimer() {
-        clearInterval(timerInterval); 
-        if(stopParkingButton) stopParkingButton.disabled = false;
-        if(extendTimeButton) extendTimeButton.disabled = false;
-        if(extendTimeButton) extendTimeButton.classList.remove('opacity-50', 'cursor-not-allowed');
-        if(stopParkingButton) stopParkingButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        clearInterval(timerInterval);
+        timerInterval = null;
+
+        stopParkingButton.disabled = false;
+        extendTimeButton.disabled = false;
+        extendTimeButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        stopParkingButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        if (stopParkingButton.textContent === 'PARKING STOPPED') {
+            stopParkingButton.textContent = 'STOP PARKING';
+        }
 
         timerInterval = setInterval(() => {
             if (totalSeconds > 0) {
                 totalSeconds--;
-                updateDisplay();
+                updateMainDisplay();
             } else {
-                updateDisplay(); 
+              
+                updateMainDisplay(); 
             }
         }, 1000);
-        updateDisplay(); 
+        updateMainDisplay(); 
     }
 
     function stopTimer() {
         clearInterval(timerInterval);
-        if(stopParkingButton) {
-            stopParkingButton.textContent = 'PARKING STOPPED';
-            stopParkingButton.disabled = true;
-            stopParkingButton.classList.add('opacity-50', 'cursor-not-allowed');
-        }
-        if(extendTimeButton) {
-            extendTimeButton.disabled = true; 
-            extendTimeButton.classList.add('opacity-50', 'cursor-not-allowed');
-        }
+        timerInterval = null;
+        totalSeconds = 0;
+        currentParkingCost = 0;
+
+        updateMainDisplay(); 
+        
+        stopParkingButton.textContent = 'PARKING STOPPED';
+        
+        stopParkingButton.disabled = true; 
+        stopParkingButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+        extendTimeButton.disabled = false;
+        extendTimeButton.classList.remove('opacity-50', 'cursor-not-allowed');
     }
 
-    function extendTimer() {
-        const minutesToAdd = prompt("How many minutes would you like to add?", "10");
-        if (minutesToAdd !== null && !isNaN(minutesToAdd) && parseInt(minutesToAdd) > 0) {
-            totalSeconds += parseInt(minutesToAdd) * 60;
-            updateDisplay();
-        } else if (minutesToAdd !== null) {
-            alert("Please enter a valid number of minutes.");
-        }
+    
+    function updateModalDisplay() {
+        modalTimeToAddDisplay.textContent = `${currentModalMinutesToAdd} min`;
+        const additionalCost = currentModalMinutesToAdd * costPerMinute;
+        modalAdditionalCostDisplay.textContent = formatCurrency(additionalCost);
+        modalManualTimeDisplay.textContent = currentModalMinutesToAdd;
     }
 
-    if(stopParkingButton) stopParkingButton.addEventListener('click', stopTimer);
-    if(extendTimeButton) extendTimeButton.addEventListener('click', extendTimer);
+    function openExtendModal() {
+        currentModalMinutesToAdd = 0; 
+        updateModalDisplay();
+        extendTimeModal.classList.remove('hidden');
+    }
 
-    startTimer();
+    function closeExtendModal() {
+        extendTimeModal.classList.add('hidden');
+    }
+
+    modalQuickAddButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const time = parseInt(button.dataset.time);
+            currentModalMinutesToAdd += time;
+            updateModalDisplay();
+        });
+    });
+
+    modalIncrementTimeBtn.addEventListener('click', () => {
+        currentModalMinutesToAdd += 1; 
+        updateModalDisplay();
+    });
+
+    modalDecrementTimeBtn.addEventListener('click', () => {
+        currentModalMinutesToAdd = Math.max(0, currentModalMinutesToAdd - 1); 
+        updateModalDisplay();
+    });
+
+    modalConfirmBtn.addEventListener('click', () => {
+        if (currentModalMinutesToAdd > 0) {
+            const additionalCost = currentModalMinutesToAdd * costPerMinute;
+            currentParkingCost += additionalCost;
+            totalSeconds += currentModalMinutesToAdd * 60;
+
+            closeExtendModal();
+            
+            startTimer(); 
+            
+        } else {
+            alert("Please add some time to extend.");
+        }
+    });
+
+    modalCancelBtn.addEventListener('click', closeExtendModal);
+    
+    
+
+    stopParkingButton.addEventListener('click', stopTimer);
+    extendTimeButton.addEventListener('click', openExtendModal);
+
+    updateMainDisplay(); 
+    startTimer(); 
 }); 

@@ -44,14 +44,14 @@
             </div>
             <div class="flex justify-between py-5">
                 <span class="text-gray-500 text-xl">Total Cost</span>
-                <span class="font-bold text-xl">$5,80</span>
+                <span id="totalCostDisplay" class="font-bold text-xl">$5,80</span>
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div class="flex justify-between items-center mt-16 px-10 gap-x-5">
-            <button class="w-1/2 py-5 border-2 border-red-500 text-red-500 font-bold rounded-lg text-xl">STOP PARKING</button>
-            <button class="w-1/2 py-5 bg-blue-600 text-white font-bold rounded-lg text-xl">EXTEND TIME</button>
+            <button id="stopParkingBtn" class="w-1/2 py-5 border-2 border-red-500 text-red-500 font-bold rounded-lg text-xl transition-opacity duration-300">STOP PARKING</button>
+            <button id="extendTimeBtn" class="w-1/2 py-5 bg-blue-600 text-white font-bold rounded-lg text-xl transition-opacity duration-300">EXTEND TIME</button>
         </div>
 
         <!-- Footer Navigation Bar -->
@@ -93,7 +93,55 @@
                 <span class="text-lg">Setting</span>
             </div>
         </div>
+
+        <!-- Extend Time Modal -->
+        <div id="extendTimeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden">
+            <div class="p-8 border w-auto shadow-lg rounded-md bg-white max-w-md mx-auto">
+                <div class="text-center">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-5">Extend Parking Time</h3>
+                    
+                    <div class="my-4">
+                        <p class="text-lg">Time to Add: <span id="modalTimeToAdd" class="font-semibold">0 min</span></p>
+                        <p class="text-lg">Additional Cost: <span id="modalAdditionalCost" class="font-semibold">$0.00</span></p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 my-6">
+                        <button data-time="5" class="modal-add-time-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg">
+                            +5 min
+                        </button>
+                        <button data-time="10" class="modal-add-time-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg">
+                            +10 min
+                        </button>
+                        <button data-time="15" class="modal-add-time-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg">
+                            +15 min
+                        </button>
+                        <button data-time="30" class="modal-add-time-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg">
+                            +30 min
+                        </button>
+                    </div>
+                     <div class="flex justify-center items-center space-x-4 my-6">
+                        <button id="modalDecrementTimeBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-full text-2xl">-</button>
+                        <span id="modalManualTimeDisplay" class="text-xl font-semibold w-16 text-center">0</span>
+                        <button id="modalIncrementTimeBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-full text-2xl">+</button>
+        </div>
+    
+
+                    <div class="flex justify-around mt-8">
+                        <button id="modalCancelBtn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                            Cancel
+                        </button>
+                        <button id="modalConfirmBtn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal HTML ends here -->
+
     </div>
+
+    <script src="timer.js"></script>
 </body>
 
 </html>
