@@ -7,31 +7,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Current Location Button Handler
+let currentMarker = null;
+let watchId = null;
 document.getElementById('locate-btn').addEventListener('click', () => {
-    console.log('Locate button clicked');
     if (!navigator.geolocation) {
-        alert('Geolocation is not supported by your browser.');
+        alert('Geolocation not supported');
         return;
     }
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const { longitude, latitude } = position.coords;
-            console.log('Current position:', longitude, latitude);
-            // Create blue dot
-            const dot = document.createElement('div');
-            Object.assign(dot.style, {
-                width: '12px',
-                height: '12px',
-                backgroundColor: '#2553E9',
-                borderRadius: '50%',
-                boxShadow: '0 0 6px rgba(0,0,0,0.3)'
-            });
-            new mapboxgl.Marker({ element: dot })
-                .setLngLat([longitude, latitude])
-                .addTo(map);
-            map.flyTo({ center: [longitude, latitude], zoom: 15 });
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    watchId = navigator.geolocation.watchPosition(
+        ({ coords }) => {
+            const lngLat = [coords.longitude, coords.latitude];
+            if (!currentMarker) {
+                const dot = document.createElement('div');
+                Object.assign(dot.style, {
+                    width: '12px', height: '12px',
+                    backgroundColor: '#2553E9',
+                    borderRadius: '50%',
+                    boxShadow: '0 0 6px rgba(0,0,0,0.3)'
+                });
+                currentMarker = new mapboxgl.Marker({ element: dot })
+                    .setLngLat(lngLat)
+                    .addTo(map);
+            } else {
+                currentMarker.setLngLat(lngLat);
+            }
+            map.flyTo({ center: lngLat, zoom: 15 });
         },
-        (err) => { console.error('Geolocation error:', err); alert(err.message); }
+        (err) => { console.error(err); alert(err.message); },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
     );
 });
