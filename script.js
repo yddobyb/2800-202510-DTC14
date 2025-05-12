@@ -32,11 +32,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (hour > 0 || minute > 0) {
                 continueBtn.classList.remove('bg-gray-200', 'text-gray-500');
-                continueBtn.classList.add('bg-black', 'text-white');
+                continueBtn.classList.add('bg-[#2553E9]', 'text-white');
                 continueBtn.disabled = false;
             } else {
                 continueBtn.classList.add('bg-gray-200', 'text-gray-500');
-                continueBtn.classList.remove('bg-black', 'text-white');
+                continueBtn.classList.remove('bg-[#2553E9]', 'text-white');
                 continueBtn.disabled = true;
             }
         };
@@ -98,3 +98,44 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.querySelector('[data-dropdown="cards"]');
+    const menu = document.querySelector('[data-dropdown-menu="cards"]');
+    if (toggleBtn && menu) {
+        toggleBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            menu.classList.toggle('hidden');
+        });
+    }
+
+    const addCardBtn = document.querySelector('[data-action="add-card"]');
+    const newCardForm = document.querySelector('[data-form="new-card"]');
+    if (addCardBtn && newCardForm) {
+        addCardBtn.addEventListener('click', () => {
+            newCardForm.classList.toggle('hidden');
+        });
+    }
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('[data-dropdown="cards"]') &&
+            !e.target.closest('[data-dropdown-menu="cards"]')) {
+            menu.classList.add('hidden');
+            newCardForm.classList.add('hidden');
+        }
+    });
+
+    newCardForm?.addEventListener('submit', e => {
+        e.preventDefault();
+        const cardNumber = newCardForm.querySelector('input[placeholder="Card Number"]').value;
+        const last4 = cardNumber.slice(-4);
+        const newCardDiv = document.createElement('div');
+        newCardDiv.textContent = `•••• ${last4}`;
+        newCardDiv.className = 'px-4 py-3 hover:bg-gray-50 cursor-pointer';
+        menu.querySelector('.divide-y').appendChild(newCardDiv);
+
+        newCardForm.classList.add('hidden');
+        menu.classList.add('hidden');
+    });
+});
+  
