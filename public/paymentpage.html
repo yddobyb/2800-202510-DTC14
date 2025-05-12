@@ -19,7 +19,8 @@
         <!-- Header -->
         <div class="bg-white shadow-sm">
             <div class="bg-[#2553E9] px-4 py-4 flex items-center justify-between">
-                <button onclick="window.location.href='public/map.html';" class="text-white text-2xl font-semibold">←</button>
+                <button onclick="window.location.href='public/map.html';"
+                    class="text-white text-2xl font-semibold">←</button>
                 <h1 class="text-white text-xl font-semibold">Choose Duration</h1>
             </div>
         </div>
@@ -69,8 +70,9 @@
                         <button data-dropdown="cards"
                             class="text-2xl text-gray-400 hover:text-gray-600 transition-colors">›</button>
                     </div>
-            
-                    <div data-dropdown-menu="cards" class="hidden mt-2 bg-white rounded-lg shadow-lg border border-gray-200">
+
+                    <div data-dropdown-menu="cards"
+                        class="hidden mt-2 bg-white rounded-lg shadow-lg border border-gray-200">
                         <div class="divide-y divide-gray-100">
                             <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">VISA *1234</div>
                             <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">Master *5678</div>
@@ -80,7 +82,7 @@
                                 + Add new card
                             </button>
                         </div>
-            
+
                         <form data-form="new-card" class="hidden px-4 pb-4 space-y-3">
                             <input type="text" placeholder="Card Number" class="w-full border rounded px-3 py-2" />
                             <div class="flex space-x-2">
@@ -98,7 +100,7 @@
                     </div>
                 </div>
             </div>
-  
+
 
             <!-- Time Selection -->
             <div class="bg-white rounded-lg p-5 shadow-sm">
@@ -147,6 +149,25 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+        // 1) Read the zone from the URL: ?zone=XXXXX
+        const params = new URLSearchParams(window.location.search);
+        const zone = params.get('zone');
+
+        if (zone) {
+            // 2) Find every <p> in the Zone Card
+            document.querySelectorAll('.p-4 .bg-white.rounded-lg.px-5.pt-3 p').forEach(p => {
+                // Trim and check if it ends with "Zone Number"
+                if (p.textContent.trim().endsWith('Zone Number')) {
+                    // 3) Its nextElementSibling should be the <h2>
+                    const heading = p.nextElementSibling;
+                    if (heading && heading.tagName === 'H2') {
+                        heading.textContent = zone;
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>
