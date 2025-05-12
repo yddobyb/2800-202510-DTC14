@@ -2,11 +2,11 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ParkSmart - Payment Success</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ParkSmart – Payment Success</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -14,48 +14,65 @@
     </style>
 </head>
 
-<body class="bg-[#fafafa] min-h-screen">
-    <div class="max-w-[390px] mx-auto">
-        <!-- Success Header -->
-        <div class="bg-[#fa8033] h-[320px] px-4 pt-4">
-            <!-- Success Icon -->
-            <div class="w-[100px] h-[100px] bg-white rounded-lg flex items-center justify-center mb-6">
-                <span class="text-[#33cc66] text-5xl font-semibold">✓</span>
-            </div>
-
-            <!-- Success Message -->
-            <h1 class="text-white text-2xl font-semibold mb-6">Payment Successful!</h1>
-            <p class="text-white text-base opacity-80">Your parking has been confirmed</p>
-        </div>
-
-        <!-- Parking Summary Card -->
-        <div class="bg-white mx-4 -mt-10 rounded-lg p-6">
-            <div class="space-y-8">
-                <!-- Location Info -->
-                <div>
-                    <p class="text-sm text-[#999999]">Location</p>
-                    <p class="text-base font-medium mt-2">Lot 179 - 443 Seymour St</p>
-                </div>
-
-                <!-- Vehicle Info -->
-                <div>
-                    <p class="text-sm text-[#999999]">Vehicle</p>
-                    <p class="text-base font-medium mt-2">RS383B (BC)</p>
-                </div>
+<body class="bg-blue-600 min-h-screen flex items-center justify-center p-10">
+    <!-- Success Card -->
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden pt-[100px]">
+        <!-- Check Icon -->
+        <div class="flex justify-center -mt-12">
+            <div class="bg-blue-100 rounded-full p-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="mx-4 mt-4 space-y-4">
-            <!-- View Receipt Button -->
-            <button class="w-full bg-black text-white h-14 rounded-lg">
-                <span class="text-[17px] font-semibold">View Receipt</span>
-            </button>
+        <!-- Header -->
+        <div class="px-6 pt-2 pb-4 text-center">
+            <h1 class="text-2xl font-semibold text-gray-900 mb-2">Success</h1>
+            <p class="mt-1 text-gray-500 text-[14px]">You’ve successfully paid your parking fee.</p>
+        </div>
 
-            <!-- Done Button -->
-            <button class="w-full bg-[#f2f2f2] text-[#666666] h-14 rounded-lg">
-                <span class="text-[17px] font-semibold">Done</span>
-            </button>
+        <!-- Details -->
+        <div class="px-6 pb-6 space-y-4 pt-7">
+            <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                <div class="flex justify-between text-gray-700">
+                    <span>Location</span>
+                    <span>443 Seymour St</span>
+                </div>
+                <div class="flex justify-between text-gray-700">
+                    <span>Vehicle</span>
+                    <span>RS1234 (BC)</span>
+                </div>
+                <div class="flex justify-between text-gray-700">
+                    <span>Start Time</span>
+                    <span>3:25 PM</span>
+                </div>
+                <div class="flex justify-between text-gray-700">
+                    <span>End Time</span>
+                    <span>4:25 PM</span>
+                </div>
+                <div class="flex justify-between text-gray-700">
+                    <span>Duration</span>
+                    <span>1 hour</span>
+                </div>
+                <div class="flex justify-between text-gray-900 font-semibold">
+                    <span>Total Amount</span>
+                    <span>$2.00</span>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="space-y-3">
+                <button onclick="window.location.href='status.html';"
+                    class="w-full border border-blue-600 text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+                    View Status
+                </button>
+                <button onclick="window.location.href='main.html';"
+                    class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Done
+                </button>
+            </div>
         </div>
     </div>
 </body>
