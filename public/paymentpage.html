@@ -19,7 +19,8 @@
         <!-- Header -->
         <div class="bg-white shadow-sm">
             <div class="bg-[#2553E9] px-4 py-4 flex items-center justify-between">
-                <button onclick="window.location.href='public/map.html';" class="text-white text-2xl font-semibold">←</button>
+                <button onclick="window.location.href='public/map.html';"
+                    class="text-white text-2xl font-semibold">←</button>
                 <h1 class="text-white text-xl font-semibold">Choose Duration</h1>
             </div>
         </div>
@@ -146,27 +147,26 @@
             </button>
         </div>
     </div>
-
-    <script src="script.js"></script>
     <script>
-        // 1) Read the zone from the URL: ?zone=XXXXX
+        // Parse the ?zone= query parameter
         const params = new URLSearchParams(window.location.search);
         const zone = params.get('zone');
 
         if (zone) {
-            // 2) Find every <p> in the Zone Card
-            document.querySelectorAll('.p-4 .bg-white.rounded-lg.px-5.pt-3 p').forEach(p => {
-                // Trim and check if it ends with "Zone Number"
-                if (p.textContent.trim().endsWith('Zone Number')) {
-                    // 3) Its nextElementSibling should be the <h2>
-                    const heading = p.nextElementSibling;
-                    if (heading && heading.tagName === 'H2') {
-                        heading.textContent = zone;
+            // Find all <p> tags with the 'Zone Number' label
+            document.querySelectorAll('p.text-gray-600.flex.items-center').forEach(p => {
+                if (p.textContent.trim().includes('Zone Number')) {
+                    const sibling = p.nextElementSibling;
+                    if (sibling && sibling.tagName === 'H2') {
+                        sibling.textContent = zone;
                     }
                 }
             });
         }
     </script>
+
+    <script src="script.js"></script>
+
 </body>
 
 </html>
