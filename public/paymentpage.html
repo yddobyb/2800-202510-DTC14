@@ -139,29 +139,43 @@
                 </div>
             </div>
 
-            <!-- Continue Button -->
-            <button data-button="continue" onclick="window.location.href='paymentconfirmpage.html';"
-                class="w-full bg-[#2553E9] font-semibold py-4 rounded-lg mt-6 transition-colors duration-200 disabled:cursor-not-allowed">
+            <button id="continue-btn" class="w-full bg-[#2553E9] font-semibold py-4 rounded-lg mt-6">
                 CONTINUE
             </button>
         </div>
     </div>
     <script>
-        // Parse the ?zone= query parameter
-        const params = new URLSearchParams(window.location.search);
-        const zone = params.get('zone');
+        // 1) grab zone & rate from ?zone=…&rate=…
+        const params = new URLSearchParams(location.search);
+        const zone = params.get('zone') || '';
+        const rate = params.get('rate') || '';
 
-        if (zone) {
-            // Find all <p> tags with the 'Zone Number' label
-            document.querySelectorAll('p.text-gray-600.flex.items-center').forEach(p => {
-                if (p.textContent.trim().includes('Zone Number')) {
-                    const sibling = p.nextElementSibling;
-                    if (sibling && sibling.tagName === 'H2') {
-                        sibling.textContent = zone;
-                    }
+        // 2) inject zone into the “Zone Number” field
+        document.querySelectorAll('p.text-gray-600.flex.items-center')
+            .forEach(p => {
+                if (p.textContent.includes('Zone Number')) {
+                    const h2 = p.nextElementSibling;
+                    if (h2 && h2.tagName === 'H2') h2.textContent = zone;
                 }
             });
-        }
+
+        // 3) wire up the CONTINUE button
+        document.getElementById('continue-btn')
+            .addEventListener('click', () => {
+                // read your time inputs
+                const hours = document.querySelector('[data-input="hour"]').textContent;
+                const minutes = document.querySelector('[data-input="minute"]').textContent;
+
+                // build the next URL
+                const qs = new URLSearchParams({
+                    zone,
+                    rate,
+                    hours,
+                    minutes
+                }).toString();
+
+                location.href = 'paymentconfirmpage.html?' + qs;
+            });
     </script>
 
     <script src="script.js"></script>

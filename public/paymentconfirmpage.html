@@ -80,14 +80,65 @@
                 </div>
             </div>
         </div>
-
         <div class="mt-20 px-12">
-            <button onclick="window.location.href='paymentsuccesspage.html';"
-                class="w-full bg-[#2553E9] text-white h-16 rounded-lg text-lg font-semibold">
+            <button id="confirm-pay-btn" class="w-full bg-[#2553E9] text-white h-16 rounded-lg text-lg font-semibold">
                 Pay $2.00
             </button>
         </div>
     </div>
+
+    <script>
+        // 1) Pull everything from the URL
+        const params = new URLSearchParams(location.search);
+        const zone = params.get('zone') || '';
+        const rate = params.get('rate') || '$0.00';
+        const hours = parseInt(params.get('hours'), 10) || 0;
+        const minutes = parseInt(params.get('minutes'), 10) || 0;
+
+        // 2) Compute times & total
+        const start = new Date();
+        const end = new Date(start.getTime() + (hours * 60 + minutes) * 60000);
+        const rateNum = parseFloat(rate.replace(/[^0-9.]/g, '')) || 0;
+        const total = (rateNum * (hours + minutes / 60)).toFixed(2);
+
+        // helper to format h:mm AM/PM
+        function fmt(dt) {
+            let h = dt.getHours(), m = String(dt.getMinutes()).padStart(2, '0');
+            const am = h < 12;
+            h = (h % 12) || 12;
+            return `${h}:${m} ${am ? 'AM' : 'PM'}`;
+        }
+
+        // 3) Update the Confirm‐page fields
+        document.querySelectorAll('.mt-2.space-y-1.text-gray-800 li').forEach(li => {
+            const key = li.children[0].textContent.trim();
+            const val = li.children[1];
+            if (key === 'Location') val.textContent = zone;
+            if (key === 'Start Time') val.textContent = fmt(start);
+            if (key === 'End Time') val.textContent = fmt(end);
+        });
+        document.querySelectorAll('.mt-2.space-y-1.text-gray-800 li').forEach(li => {
+            const key = li.children[0].textContent.trim();
+            const val = li.children[1];
+            if (key === 'Fee per hour') val.textContent = rate;
+            if (key === 'Duration') val.textContent =
+                `${hours > 0 ? hours + ' hour' : ''}` +
+                `${minutes > 0 ? ` ${minutes} min` : ''}`.trim();
+            if (key === 'Total Amount') val.textContent = '$' + total;
+        });
+
+        // 4) Wire the Pay button to pass all params to the success page
+        const payBtn = document.getElementById('confirm-pay-btn');
+        payBtn.textContent = 'Pay $' + total;
+        payBtn.addEventListener('click', () => {
+            const qs = new URLSearchParams({ zone, rate, hours, minutes }).toString();
+            location.href = 'paymentsuccesspage.html?' + qs;
+        });
+    </script>
+
+
+
+
 </body>
 
 </html>

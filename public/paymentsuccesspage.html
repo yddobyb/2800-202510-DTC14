@@ -38,43 +38,79 @@
             <div class="bg-gray-50 rounded-lg p-4 space-y-2">
                 <div class="flex justify-between text-gray-700">
                     <span>Location</span>
-                    <span>443 Seymour St</span>
-                </div>
-                <div class="flex justify-between text-gray-700">
-                    <span>Vehicle</span>
-                    <span>RS1234 (BC)</span>
+                    <span id="success-zone">--</span>
                 </div>
                 <div class="flex justify-between text-gray-700">
                     <span>Start Time</span>
-                    <span>3:25 PM</span>
+                    <span id="success-start">--</span>
                 </div>
                 <div class="flex justify-between text-gray-700">
                     <span>End Time</span>
-                    <span>4:25 PM</span>
+                    <span id="success-end">--</span>
                 </div>
                 <div class="flex justify-between text-gray-700">
                     <span>Duration</span>
-                    <span>1 hour</span>
+                    <span id="success-duration">--</span>
                 </div>
                 <div class="flex justify-between text-gray-900 font-semibold">
                     <span>Total Amount</span>
-                    <span>$2.00</span>
+                    <span id="success-total">--</span>
                 </div>
             </div>
 
             <!-- Buttons -->
             <div class="space-y-3">
-                <button onclick="window.location.href='status.html';"
+                <button id="view-status"
                     class="w-full border border-blue-600 text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
                     View Status
                 </button>
-                <button onclick="window.location.href='main.html';"
+                <button id="done-btn"
                     class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
                     Done
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- Script to populate details and handle Done -->
+    <script>
+        // helper to format a Date as “h:mm AM/PM”
+        function fmt(dt) {
+            let h = dt.getHours();
+            const m = String(dt.getMinutes()).padStart(2, '0');
+            const am = h < 12;
+            h = h % 12 || 12;
+            return `${h}:${m} ${am ? 'AM' : 'PM'}`;
+        }
+
+        // parse query params
+        const params = new URLSearchParams(window.location.search);
+        const zone = params.get('zone') || '';
+        const hours = parseInt(params.get('hours'), 10) || 0;
+        const minutes = parseInt(params.get('minutes'), 10) || 0;
+        const rateStr = params.get('rate') || '$0.00';
+
+        // compute times
+        const start = new Date();
+        const end = new Date(start.getTime() + (hours * 60 + minutes) * 60000);
+        const total = (parseFloat(rateStr.replace(/[^0-9.]/g, '')) * (hours + minutes / 60)).toFixed(2);
+
+        // set fields
+        document.getElementById('success-zone').textContent = zone;
+        document.getElementById('success-start').textContent = fmt(start);
+        document.getElementById('success-end').textContent = fmt(end);
+        document.getElementById('success-duration').textContent =
+            `${hours} hour${hours !== 1 ? 's' : ''}` + (minutes ? ` ${minutes} min` : '');
+        document.getElementById('success-total').textContent = `$${total}`;
+
+        // button handlers
+        document.getElementById('view-status').addEventListener('click', () => {
+            window.location.href = 'status.html';
+        });
+        document.getElementById('done-btn').addEventListener('click', () => {
+            window.location.href = 'map.html';
+        });
+    </script>
 </body>
 
 </html>
