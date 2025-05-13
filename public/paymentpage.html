@@ -18,15 +18,11 @@
     <div class="w-[440px] h-[956px] bg-white overflow-hidden relative">
         <!-- Header -->
         <div class="bg-white shadow-sm">
-            <div class="bg-[#2553E9] px-4 py-4 relative flex items-center justify-center">
+            <div class="bg-[#2553E9] px-4 py-4 flex items-center justify-between">
                 <button onclick="window.location.href='public/map.html';"
-                    class="absolute left-4 text-white text-2xl font-semibold">
-                    ←
-                </button>
-                <h1 class="text-white text-xl font-semibold">
-                    Choose Duration
-                </h1>
-            </div>    
+                    class="text-white text-2xl font-semibold">←</button>
+                <h1 class="text-white text-xl font-semibold">Choose Duration</h1>
+            </div>
         </div>
 
         <!-- Main Content -->
@@ -38,8 +34,7 @@
                         <span class="mr-2">📍</span>
                         Zone Number
                     </p>
-                    <h2 class="text-2xl font-semibold">17900</h2>
-                    <p class="text-gray-500 text-sm">443 Seymour St</p>
+                    <h2 class="text-2xl font-semibold">00000</h2>
                 </div>
             </div>
 
@@ -50,7 +45,7 @@
                         <span class="mr-2">🚗</span>
                         Vehicle
                     </p>
-                    <p class="text-base font-medium"> RS2918(British Columbia (BC))</p>
+                    <p class="text-base font-medium"> RS2918</p>
                 </div>
             </div>
 
@@ -74,8 +69,9 @@
                         <button data-dropdown="cards"
                             class="text-2xl text-gray-400 hover:text-gray-600 transition-colors">›</button>
                     </div>
-            
-                    <div data-dropdown-menu="cards" class="hidden mt-2 bg-white rounded-lg shadow-lg border border-gray-200">
+
+                    <div data-dropdown-menu="cards"
+                        class="hidden mt-2 bg-white rounded-lg shadow-lg border border-gray-200">
                         <div class="divide-y divide-gray-100">
                             <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">VISA *1234</div>
                             <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">Master *5678</div>
@@ -85,7 +81,7 @@
                                 + Add new card
                             </button>
                         </div>
-            
+
                         <form data-form="new-card" class="hidden px-4 pb-4 space-y-3">
                             <input type="text" placeholder="Card Number" class="w-full border rounded px-3 py-2" />
                             <div class="flex space-x-2">
@@ -103,7 +99,7 @@
                     </div>
                 </div>
             </div>
-  
+
 
             <!-- Time Selection -->
             <div class="bg-white rounded-lg p-5 shadow-sm">
@@ -150,8 +146,26 @@
             </button>
         </div>
     </div>
+    <script>
+        // Parse the ?zone= query parameter
+        const params = new URLSearchParams(window.location.search);
+        const zone = params.get('zone');
+
+        if (zone) {
+            // Find all <p> tags with the 'Zone Number' label
+            document.querySelectorAll('p.text-gray-600.flex.items-center').forEach(p => {
+                if (p.textContent.trim().includes('Zone Number')) {
+                    const sibling = p.nextElementSibling;
+                    if (sibling && sibling.tagName === 'H2') {
+                        sibling.textContent = zone;
+                    }
+                }
+            });
+        }
+    </script>
 
     <script src="script.js"></script>
+
 </body>
 
 </html>
