@@ -268,7 +268,6 @@
             }
         });
 
-
         const $input = document.getElementById('search-input');
         const $btn = document.getElementById('search-btn');
         let searchMarker;
@@ -296,15 +295,13 @@
 
             searchMarker = new mapboxgl.Marker({ color: '#2553E9' })
                 .setLngLat([lng, lat])
-                .setPopup(                                  
+                .setPopup(
                     new mapboxgl.Popup({ offset: 25 })
-                        .setText(feature.place_name || query)   
+                        .setText(feature.place_name || query)
                 )
                 .addTo(map)
-                .togglePopup();                      
+                .togglePopup();
         }
-
-
 
         $btn.addEventListener('click', handleSearch);
         $input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
