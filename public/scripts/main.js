@@ -17,3 +17,12 @@ window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('guest-links').style.display = 'none';
     }
 });
+
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('error') === 'invalid') {
+        alert('Invalid email or password.');
+        document.getElementById('loginForm').reset();
+        history.replaceState(null, '', 'login.html');
+    }
+});
