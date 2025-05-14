@@ -13,7 +13,7 @@ function togglePassword() {
 
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(location.search);
-    if (params.get('signup') === 'success') {
+    if (params.get('login') === 'success') {
         document.getElementById('guest-links').style.display = 'none';
     }
 });

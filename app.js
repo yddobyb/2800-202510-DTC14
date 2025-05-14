@@ -41,7 +41,7 @@ app.post('/signup', async (req, res) => {
             [username, hash, email, phone]
         );
         // Redirect to main on success
-        return res.redirect('/main.html?signup=success');
+        return res.redirect('/main.html?login=success');
     } catch (err) {
         console.error(err);
         return res.status(500).send('Signup failed');
