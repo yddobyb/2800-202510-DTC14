@@ -25,13 +25,17 @@ const database = mysql.createPool({
     database: process.env.DB_NAME,
 });
 
-// ── Sign Up Routes ──
-// Serve sign-up page
+// Serve signup page
 app.get('/signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'signup.html'));
 });
 
-// Handle sign-up form submission
+// Serve login page
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Handle signup form submission
 app.post('/signup', async (req, res) => {
     const { username, email, phone, password } = req.body;
     try {
@@ -45,6 +49,28 @@ app.post('/signup', async (req, res) => {
     } catch (err) {
         console.error(err);
         return res.status(500).send('Signup failed');
+    }
+});
+
+// Handle login form submission
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const [rows] = await database.execute(
+            'SELECT password FROM users WHERE email = ?',
+            [email]
+        );
+        if (rows.length === 0) {
+            return res.redirect('/login.html?error=invalid');
+        }
+        const match = await bcrypt.compare(password, rows[0].password);
+        if (!match) {
+            return res.redirect('/login.html?error=invalid');
+        }
+        return res.redirect('/main.html?login=success');
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send('Server error');
     }
 });
 
