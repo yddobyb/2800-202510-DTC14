@@ -15,93 +15,75 @@
     </style>
 </head>
 
-<body class="bg-gray-100">
-    <div class="w-[550px] mx-auto min-h-screen bg-white pb-36">
-        <!-- Header -->
-        <div class="pt-12 text-center">
-            <h1 class="text-5xl font-bold">You are Parked</h1>
-            <p class="text-green-500 mt-3 text-2xl">Active</p>
-        </div>
+<body class="bg-white flex items-center justify-center min-h-screen">
+    <div class="w-[440px] h-[956px] bg-white relative overflow-hidden">
+        <div class="pb-[130px] overflow-y-auto h-full">
+            <!-- Header -->
+            <div class="pt-12 text-center">
+                <h1 class="text-5xl font-bold">You are Parked</h1>
+                <p class="text-green-500 mt-3 text-2xl">Active</p>
+            </div>
 
-        <!-- Timer Circle -->
-        <div class="flex justify-center items-center mt-16">
-            <div class="relative">
-                <div class="w-72 h-72 rounded-full border-[10px] border-blue-400 flex items-center justify-center">
-                    <span id="timerDisplay" class="text-7xl font-bold text-gray-800">0:23</span>
+            <!-- Timer Circle -->
+            <div class="flex justify-center items-center mt-16">
+                <div class="relative">
+                    <div class="w-72 h-72 rounded-full border-[10px] border-blue-400 flex items-center justify-center">
+                        <span id="timerDisplay" class="text-7xl font-bold text-gray-800">0:23</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Parking Details Section -->
-        <div class="mt-16 px-10">
-            <div class="flex justify-between py-5 border-b">
-                <span class="text-gray-500 text-xl">Parking Spot</span>
-                <span class="font-bold text-xl">A123</span>
+            <!-- Parking Details Section -->
+            <div class="mt-16 px-10">
+                <div class="flex justify-between py-5 border-b">
+                    <span class="text-gray-500 text-xl">Parking Spot</span>
+                    <span class="font-bold text-xl">A123</span>
+                </div>
+                <div class="flex justify-between py-5 border-b">
+                    <span class="text-gray-500 text-xl">Time Left</span>
+                    <span id="timeLeftDisplay" class="font-bold text-xl">0 hr 23 min</span>
+                </div>
+                <div class="flex justify-between py-5">
+                    <span class="text-gray-500 text-xl">Total Cost</span>
+                    <span id="totalCostDisplay" class="font-bold text-xl">$5,80</span>
+                </div>
             </div>
-            <div class="flex justify-between py-5 border-b">
-                <span class="text-gray-500 text-xl">Time Left</span>
-                <span id="timeLeftDisplay" class="font-bold text-xl">0 hr 23 min</span>
-            </div>
-            <div class="flex justify-between py-5">
-                <span class="text-gray-500 text-xl">Total Cost</span>
-                <span id="totalCostDisplay" class="font-bold text-xl">$5,80</span>
-            </div>
-        </div>
 
-        <!-- Action Buttons -->
-        <div class="flex justify-between items-center mt-16 px-10 gap-x-5">
-            <button id="stopParkingBtn"
-                class="w-1/2 py-5 border-2 border-red-500 text-red-500 font-bold rounded-lg text-xl transition-opacity duration-300">STOP
-                PARKING</button>
-            <button id="extendTimeBtn"
-                class="w-1/2 py-5 bg-blue-600 text-white font-bold rounded-lg text-xl transition-opacity duration-300">EXTEND
-                TIME</button>
+            <!-- Action Buttons -->
+            <div class="flex justify-between items-center mt-16 px-10 gap-x-5">
+                <button id="stopParkingBtn"
+                    class="w-1/2 py-5 border-2 border-red-500 text-red-500 font-bold rounded-lg text-xl transition-opacity duration-300">STOP
+                    PARKING</button>
+                <button id="extendTimeBtn"
+                    class="w-1/2 py-5 bg-blue-600 text-white font-bold rounded-lg text-xl transition-opacity duration-300">EXTEND
+                    TIME</button>
+            </div>
         </div>
 
         <!-- Footer Navigation Bar -->
-        <div class="fixed bottom-0 inset-x-0 w-[550px] mx-auto bg-white rounded-t-2xl shadow-lg flex justify-around items-center px-8 py-4"
-            style="border-top: 1px solid #e5e7eb;">
-
-            <!-- Map Icon -->
-            <div class="flex flex-col items-center text-gray-500 hover:text-blue-600 transition-colors">
-                <svg class="w-9 h-9 mb-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
-                    <line x1="8" y1="2" x2="8" y2="18"></line>
-                    <line x1="16" y1="6" x2="16" y2="22"></line>
-                </svg>
-                <span class="text-lg">Map</span>
-            </div>
-
-            <!-- Favorite Icon -->
-            <div class="flex flex-col items-center text-gray-500 hover:text-blue-600 transition-colors">
-                <svg class="w-9 h-9 mb-1.5" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"
-                    stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon
-                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                    </polygon>
-                </svg>
-                <span class="text-lg">Favorite</span>
-            </div>
-
-            <!-- Status Icon (P) -->
-            <div class="flex flex-col items-center text-blue-600">
-                <div class="w-9 h-9 mb-1.5 flex items-center justify-center">
-                    <span class="text-3xl font-bold">P</span>
-                </div>
-                <span class="text-lg font-bold">Status</span>
-            </div>
-
-            <!-- Setting Icon -->
-            <div class="flex flex-col items-center text-gray-500 hover:text-blue-600 transition-colors">
-                <svg class="w-9 h-9 mb-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path
-                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                    </path>
-                </svg>
-                <span class="text-lg">Setting</span>
+        <div id="navigation"
+            class="absolute bottom-0 left-0 w-full h-[113px] bg-white z-10 rounded-t-[40px] p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.4)]">
+            <div class="flex justify-between items-center h-full px-4">
+                <!-- Map Tab -->
+                <a href="./map.html" class="nav-item flex flex-col items-center" data-type="Map">
+                    <img src="./asset/grayMap.png" class="w-[30px]">
+                    <span class="text-[16px] text-[#6E6E6E] mt-2">Map</span>
+                </a>
+                <!-- Favorite Tab -->
+                <a href="#" class="nav-item flex flex-col items-center" data-type="Favorite">
+                    <img src="./asset/grayFavorite.png" class="w-[30px]">
+                    <span class="text-[16px] text-[#6E6E6E] mt-2">Favorite</span>
+                </a>
+                <!-- Status Tab -->
+                <a href="./status.html" class="nav-item flex flex-col items-center" data-type="Status">
+                    <img src="./asset/grayStatus.png" class="w-[26px]">
+                    <span class="text-[16px] text-[#6E6E6E] mt-2">Status</span>
+                </a>
+                <!-- Setting Tab -->
+                <a href="./setting.html" class="nav-item flex flex-col items-center" data-type="Setting">
+                    <img src="./asset/graySetting.png" class="w-[30px]">
+                    <span class="text-[16px] text-[#6E6E6E] mt-2">Setting</span>
+                </a>
             </div>
         </div>
 
@@ -163,6 +145,7 @@
     </div>
 
     <script src="timer.js"></script>
+    <script src="scripts/navigation_bar.js"></script>
 </body>
 
 </html>
