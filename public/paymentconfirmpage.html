@@ -101,7 +101,7 @@
         const rateNum = parseFloat(rate.replace(/[^0-9.]/g, '')) || 0;
         const total = (rateNum * (hours + minutes / 60)).toFixed(2);
 
-        // helper to format h:mm AM/PM
+      
         function fmt(dt) {
             let h = dt.getHours(), m = String(dt.getMinutes()).padStart(2, '0');
             const am = h < 12;
@@ -130,9 +130,46 @@
         // 4) Wire the Pay button to pass all params to the success page
         const payBtn = document.getElementById('confirm-pay-btn');
         payBtn.textContent = 'Pay $' + total;
-        payBtn.addEventListener('click', () => {
-            const qs = new URLSearchParams({ zone, rate, hours, minutes }).toString();
-            location.href = 'paymentsuccesspage.html?' + qs;
+        payBtn.addEventListener('click', async () => {
+            try {
+                // Get the vehicle number from the page
+                const vehicleNumber = document.querySelector('li:nth-child(2) span:last-child').textContent.split(' ')[0];
+                
+                // Use hardcoded user ID (no authentication required)
+                const userId = 1; 
+                
+                // Send payment data to the server
+                const response = await fetch('/api/payment/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        vehicle_number: vehicleNumber,
+                        rate: rate,
+                        street_number: zone,
+                        hours: hours,
+                        minutes: minutes
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Store payment ID for reference
+                    sessionStorage.setItem('last_payment_id', result.payment_id);
+                    
+                    // Redirect to success page
+                    const qs = new URLSearchParams({ zone, rate, hours, minutes, payment_id: result.payment_id }).toString();
+                    location.href = 'paymentsuccesspage.html?' + qs;
+                } else {
+                    alert('Payment failed: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error processing payment:', error);
+                alert('Payment failed. Please try again.');
+            }
         });
     </script>
 

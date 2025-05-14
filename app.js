@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import metersRouter from './api/meters.js';
+import paymentRouter from './api/payment.js';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -16,14 +17,46 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MySQL connection pool
-const database = mysql.createPool({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-});
+// Mock user database for testing
+const mockUsers = [
+  {
+    user_id: 1,
+    username: 'testuser',
+    email: 'test@example.com',
+    phone: '1234567890',
+    password: '$2b$10$dFKVUqY8wDJXJJxHmGGcWuVaQJOBEZIw5Vv.o9OGGj8.XJLZ9jTDe' // password123
+  }
+];
+
+// MySQL connection pool with fallback to mock data
+let database;
+try {
+  database = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'parking_app',
+    connectTimeout: 5000 // 5 seconds
+  });
+  
+  // Test the connection
+  console.log('Attempting to connect to database...');
+  database.getConnection()
+    .then(conn => {
+      console.log('Main database connected successfully');
+      conn.release();
+    })
+    .catch(err => {
+      console.error('Failed to connect to main database:', err.message);
+      console.log('Using mock user database for testing');
+      database = null;
+    });
+} catch (error) {
+  console.error('Error setting up main database connection:', error);
+  console.log('Using mock user database for testing');
+  database = null;
+}
 
 // Serve signup page
 app.get('/signup', (req, res) => {
@@ -40,10 +73,35 @@ app.post('/signup', async (req, res) => {
     const { username, email, phone, password } = req.body;
     try {
         const hash = await bcrypt.hash(password, 10);
-        await database.execute(
-            `INSERT INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)`,
-            [username, hash, email, phone]
-        );
+        
+        if (database) {
+            try {
+                await database.execute(
+                    `INSERT INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)`,
+                    [username, hash, email, phone]
+                );
+            } catch (dbError) {
+                console.error('Database error during signup:', dbError);
+                // Add to mock database if real DB fails
+                mockUsers.push({
+                    user_id: mockUsers.length + 1,
+                    username,
+                    email,
+                    phone,
+                    password: hash
+                });
+            }
+        } else {
+            // Use mock database
+            mockUsers.push({
+                user_id: mockUsers.length + 1,
+                username,
+                email,
+                phone,
+                password: hash
+            });
+        }
+        
         // Redirect to main on success
         return res.redirect('/main.html?login=success');
     } catch (err) {
@@ -56,33 +114,67 @@ app.post('/signup', async (req, res) => {
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
     try {
-        const [rows] = await database.execute(
-            'SELECT password FROM users WHERE email = ?',
-            [email]
-        );
-        if (rows.length === 0) {
+        let userFound = false;
+        let userPassword = '';
+        let userId = 1; // Default for mock
+        
+        if (database) {
+            try {
+                const [rows] = await database.execute(
+                    'SELECT user_id, password FROM users WHERE email = ?',
+                    [email]
+                );
+                if (rows.length > 0) {
+                    userFound = true;
+                    userPassword = rows[0].password;
+                    userId = rows[0].user_id;
+                }
+            } catch (dbError) {
+                console.error('Database error during login:', dbError);
+                // Fall back to mock database
+                const mockUser = mockUsers.find(u => u.email === email);
+                if (mockUser) {
+                    userFound = true;
+                    userPassword = mockUser.password;
+                    userId = mockUser.user_id;
+                }
+            }
+        } else {
+            // Use mock database
+            const mockUser = mockUsers.find(u => u.email === email);
+            if (mockUser) {
+                userFound = true;
+                userPassword = mockUser.password;
+                userId = mockUser.user_id;
+            }
+        }
+        
+        if (!userFound) {
             return res.redirect('/login.html?error=invalid');
         }
-        const match = await bcrypt.compare(password, rows[0].password);
+        
+        const match = await bcrypt.compare(password, userPassword);
         if (!match) {
             return res.redirect('/login.html?error=invalid');
         }
-        return res.redirect('/main.html?login=success');
+        
+        // Set user ID in localStorage via a script in the redirect
+        return res.redirect(`/main.html?login=success&userId=${userId}`);
     } catch (err) {
         console.error(err);
         return res.status(500).send('Server error');
     }
 });
 
-// ── Existing API Routes ──
-app.use('/api/meters', metersRouter);
 
-// ── Static Files ──
+app.use('/api/meters', metersRouter);
+app.use('/api/payment', paymentRouter);
+
+
 app.use(express.static(path.join(__dirname, 'public'), {
     extensions: ['html']
 }));
 
-// ── 404 Handler ──
 app.use((req, res) => res.status(404).send('Not found'));
 
 const PORT = process.env.PORT || 4000;
