@@ -40,9 +40,12 @@ router.post('/save', async (req, res) => {
   try {
     const { user_id, vehicle_number, rate, street_number, hours, minutes } = req.body;
     
-    const rateValue = parseFloat(rate.replace(/[^0-9.]/g, ''));
+    // Handle rate whether it's a string or number
+    const rateValue = typeof rate === 'number' 
+      ? rate 
+      : parseFloat(String(rate).replace(/[^0-9.]/g, '')) || 0;
     
-    const totalHours = parseFloat(hours) + (parseFloat(minutes) / 60);
+    const totalHours = parseFloat(hours) + (parseFloat(minutes || 0) / 60);
     
     // Insert into actual MySQL database
     const [result] = await pool.execute(
@@ -79,7 +82,7 @@ router.get('/history/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
     
-    // Get from actual MySQL database
+    // Get from actual MySQL database - don't filter by active status
     const [payments] = await pool.execute(
       'SELECT * FROM paymentHistory WHERE user_id = ? ORDER BY payment_id DESC',
       [userId]
@@ -94,6 +97,61 @@ router.get('/history/:userId', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch payment history',
+      error: error.message
+    });
+  }
+});
+
+// API endpoint to stop parking (mark as inactive)
+router.post('/stop/:paymentId', async (req, res) => {
+  try {
+    const paymentId = req.params.paymentId;
+    
+    // Get the payment to calculate actual used time
+    const [payments] = await pool.execute(
+      'SELECT * FROM paymentHistory WHERE payment_id = ?',
+      [paymentId]
+    );
+    
+    if (payments.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment not found'
+      });
+    }
+    
+    const payment = payments[0];
+    const paymentDate = new Date(payment.payment_date);
+    const now = new Date();
+    const usedTimeHours = (now - paymentDate) / (1000 * 60 * 60);
+    
+    // Calculate prorated cost based on actual time used
+    const proratedCost = (payment.rate * Math.min(usedTimeHours, payment.hours)).toFixed(2);
+    
+    // Instead of creating a new record with active=0,
+    // Simply create a record with 0 hours to indicate the parking has stopped
+    await pool.execute(
+      'INSERT INTO paymentHistory (user_id, vehicle_number, rate, street_number, hours) VALUES (?, ?, ?, ?, ?)',
+      [
+        payment.user_id,
+        payment.vehicle_number,
+        0, // Zero rate for stop record
+        payment.street_number,
+        0  // Zero hours indicates stopped
+      ]
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: 'Parking stopped successfully',
+      actual_hours: Math.min(usedTimeHours, payment.hours),
+      actual_cost: proratedCost
+    });
+  } catch (error) {
+    console.error('Error stopping parking:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to stop parking',
       error: error.message
     });
   }

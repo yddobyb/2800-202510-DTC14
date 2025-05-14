@@ -306,6 +306,11 @@
         $btn.addEventListener('click', handleSearch);
         $input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
 
+        // When map page loads, clear the parkingStopped flag
+        document.addEventListener('DOMContentLoaded', function() {
+            localStorage.removeItem('parkingStopped');
+        });
+
     </script>
 
     <!-- Filter panel behavior -->

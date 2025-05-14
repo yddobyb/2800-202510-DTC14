@@ -22,6 +22,9 @@ CREATE TABLE IF NOT EXISTS paymentHistory (
     street_number VARCHAR(50) NOT NULL,
     hours DECIMAL(10, 2) NOT NULL,
     payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    active TINYINT(1) DEFAULT 1,
+    actual_hours DECIMAL(10, 2) DEFAULT NULL,
+    actual_cost DECIMAL(10, 2) DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
@@ -40,3 +43,32 @@ VALUES (
         '$2b$10$dFKVUqY8wDJXJJxHmGGcWuVaQJOBEZIw5Vv.o9OGGj8.XJLZ9jTDe'
     );
 -- Password is 'password123'
+
+-- Insert sample users from mock data
+INSERT INTO
+    users (
+        user_id,
+        username,
+        email,
+        password
+    )
+VALUES (
+        1,
+        'zoey',
+        'zoey@example.com',
+        '$2b$10$dFKVUqY8wDJXJJxHmGGcWuVaQJOBEZIw5Vv.o9OGGj8.XJLZ9jTDe'
+    ),
+    (
+        2,
+        'john_doe',
+        'johndoe@example.com',
+        '$2b$10$dFKVUqY8wDJXJJxHmGGcWuVaQJOBEZIw5Vv.o9OGGj8.XJLZ9jTDe'
+    ),
+    (
+        3,
+        'jane_smith',
+        'janesmith@example.com',
+        '$2b$10$dFKVUqY8wDJXJJxHmGGcWuVaQJOBEZIw5Vv.o9OGGj8.XJLZ9jTDe'
+    )
+ON DUPLICATE KEY UPDATE
+    username = VALUES(username);
