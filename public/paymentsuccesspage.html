@@ -15,7 +15,7 @@
 </head>
 
 <body class="bg-blue-600 min-h-screen flex items-center justify-center p-10">
-    <!-- Success Card -->
+
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden pt-[100px]">
         <!-- Check Icon -->
         <div class="flex justify-center -mt-12">
@@ -30,12 +30,16 @@
         <!-- Header -->
         <div class="px-6 pt-2 pb-4 text-center">
             <h1 class="text-2xl font-semibold text-gray-900 mb-2">Success</h1>
-            <p class="mt-1 text-gray-500 text-[14px]">You’ve successfully paid your parking fee.</p>
+            <p class="mt-1 text-gray-500 text-[14px]">You've successfully paid your parking fee.</p>
         </div>
 
         <!-- Details -->
         <div class="px-6 pb-6 space-y-4 pt-7">
             <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                <div class="flex justify-between text-gray-700">
+                    <span>Payment ID</span>
+                    <span id="success-payment-id">--</span>
+                </div>
                 <div class="flex justify-between text-gray-700">
                     <span>Location</span>
                     <span id="success-zone">--</span>
@@ -74,7 +78,7 @@
 
     <!-- Script to populate details and handle Done -->
     <script>
-        // helper to format a Date as “h:mm AM/PM”
+        // helper to format a Date as "h:mm AM/PM"
         function fmt(dt) {
             let h = dt.getHours();
             const m = String(dt.getMinutes()).padStart(2, '0');
@@ -96,6 +100,8 @@
         const total = (parseFloat(rateStr.replace(/[^0-9.]/g, '')) * (hours + minutes / 60)).toFixed(2);
 
         // set fields
+        const paymentId = params.get('payment_id') || sessionStorage.getItem('last_payment_id') || 'N/A';
+        document.getElementById('success-payment-id').textContent = paymentId;
         document.getElementById('success-zone').textContent = zone;
         document.getElementById('success-start').textContent = fmt(start);
         document.getElementById('success-end').textContent = fmt(end);
