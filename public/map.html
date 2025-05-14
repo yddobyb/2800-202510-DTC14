@@ -71,15 +71,15 @@
             <div class="absolute top-[45px] left-[30px] flex space-x-2 z-30 items-center">
                 <!-- Search Input + Button -->
                 <div class="w-[308px] h-[55px] bg-white rounded-[15px] flex items-center pl-5">
-                    <input type="text" placeholder="Search Location"
+                    <input id="search-input" type="text" placeholder="Search Location"
                         class="w-[80%] text-[18px] text-[#6E6E6E] outline-none" />
-                    <div
+                    <button id="search-btn"
                         class="w-[45px] h-[45px] bg-[#2553E9] rounded-[15px] flex items-center justify-center ml-[8px]">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                    </div>
+                    </button>
                 </div>
                 <!-- Filter Icon & Panel -->
                 <div class="relative">
@@ -267,6 +267,47 @@
                 console.error(err);
             }
         });
+
+
+        const $input = document.getElementById('search-input');
+        const $btn = document.getElementById('search-btn');
+        let searchMarker;
+
+        async function geocode(query) {
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json`
+                + `?access_token=${mapboxgl.accessToken}&limit=1`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Geocoding failed');
+            const data = await res.json();
+            return data.features[0] ?? null;
+        }
+
+        async function handleSearch() {
+            const query = $input.value.trim();
+            if (!query) return;
+
+            const feature = await geocode(query);
+            if (!feature) return alert('No location found 😢');
+
+            const [lng, lat] = feature.center;
+            map.flyTo({ center: [lng, lat], zoom: 16 });
+
+            if (searchMarker) searchMarker.remove();
+
+            searchMarker = new mapboxgl.Marker({ color: '#2553E9' })
+                .setLngLat([lng, lat])
+                .setPopup(                                  
+                    new mapboxgl.Popup({ offset: 25 })
+                        .setText(feature.place_name || query)   
+                )
+                .addTo(map)
+                .togglePopup();                      
+        }
+
+
+
+        $btn.addEventListener('click', handleSearch);
+        $input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
 
     </script>
 
