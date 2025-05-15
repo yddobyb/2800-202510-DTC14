@@ -8,6 +8,7 @@ import metersRouter from './api/meters.js';
 import paymentRouter from './api/payment.js';
 import session from 'express-session';
 import crypto from 'crypto';
+import { execFile } from 'child_process';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -196,8 +197,8 @@ app.post('/forgotpassword', async (req, res) => {
 
         if (database) {
             await database.execute(
-              'UPDATE users SET reset_token = ?, reset_expires = ? WHERE user_id = ?',
-              [token, expires, userRow.user_id]
+                'UPDATE users SET reset_token = ?, reset_expires = ? WHERE user_id = ?',
+                [token, expires, userRow.user_id]
             );
 
         } else {
@@ -239,6 +240,28 @@ app.get('/reset_password', async (req, res) => {
 // Existing API routes
 app.use('/api/meters', metersRouter);
 app.use('/api/payment', paymentRouter);
+
+// Fun Fact 생성 엔드포인트
+app.get('/api/funfact', (req, res) => {
+    const place = req.query.place;
+    if (!place) {
+        return res.status(400).json({ error: 'place query parameter is required' });
+    }
+
+    const scriptPath = path.join(__dirname, 'deep.py');
+    execFile('python3', [scriptPath, place], { cwd: __dirname }, (err, stdout, stderr) => {
+        if (err) {
+            console.error('deep.py error:', err, stderr);
+            return res.status(500).json({ error: 'Failed to generate fun fact' });
+        }
+        const fact = stdout.toString().trim();
+        return res.json({ fact });
+    });
+});
+
+
+
+
 
 // Static files (extension inference)
 app.use(express.static(path.join(__dirname, 'public'), {
