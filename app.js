@@ -213,7 +213,7 @@ app.post('/forgotpassword', async (req, res) => {
         return res.redirect('/forgotpassword.html?sent=true');
 
     } catch (err) {
-        console.error('Forgot-password error:', err);
+        console.error('Forgotpassword error:', err);
         return res.status(500).send('Server error');
     }
 });
