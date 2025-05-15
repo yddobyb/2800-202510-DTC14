@@ -166,6 +166,76 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.post('/forgotpassword', async (req, res) => {
+    const { email, username, phone } = req.body;
+
+    try {
+        let userRow;
+        if (database) {
+            const [rows] = await database.execute(
+                'SELECT user_id FROM users WHERE email = ? AND username = ? AND phone = ?',
+                [email, username, phone]
+            );
+            if (rows.length === 0) {
+                return res.redirect('/forgotpassword.html?error=notfound');
+            }
+            userRow = rows[0];
+        } else {
+            userRow = mockUsers.find(u =>
+                u.email === email &&
+                u.username === username &&
+                u.phone === phone
+            );
+            if (!userRow) {
+                return res.redirect('/forgotpassword.html?error=notfound');
+            }
+        }
+
+        const token = crypto.randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 3600_000); // expire after an hour
+
+        if (database) {
+            await database.execute(
+              'UPDATE users SET reset_token = ?, reset_expires = ? WHERE user_id = ?',
+              [token, expires, userRow.user_id]
+            );
+
+        } else {
+            //Check mock user data
+            const u = mockUsers.find(u => u.user_id === userRow.user_id);
+            u.reset_token = token;
+            u.reset_expires = expires;
+        }
+
+        // sendResetEmail(email, token);
+
+        return res.redirect('/forgotpassword.html?sent=true');
+
+    } catch (err) {
+        console.error('Forgot-password error:', err);
+        return res.status(500).send('Server error');
+    }
+});
+
+app.get('/reset_password', async (req, res) => {
+    const { token } = req.query;
+    if (!token) return res.redirect('/login');
+
+    const sql = `SELECT user_id, reset_expires 
+                   FROM users 
+                  WHERE reset_token = ?`;
+    const [rows] = await database.execute(sql, [token]);
+    if (rows.length === 0) {
+        return res.redirect('/reset_password.html?error=invalid');
+    }
+    const { user_id, reset_expires } = rows[0];
+    if (new Date(reset_expires) < new Date()) {
+        return res.redirect('/reset_password.html?error=expired');
+    }
+
+    res.sendFile(path.join(__dirname, 'public', 'reset_password.html'));
+});
+
 // Existing API routes
 app.use('/api/meters', metersRouter);
 app.use('/api/payment', paymentRouter);
