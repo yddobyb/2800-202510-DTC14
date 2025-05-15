@@ -8,9 +8,6 @@ client = OpenAI(
 )
 
 def ask_deepseek(conversation: list[dict], question: str) -> str:
-    """
-    conversation에 user 메시지를 추가하고 GPT에 질의하여 assistant 응답을 반환합니다.
-    """
     conversation.append({"role": "user", "content": question})
     response = client.chat.completions.create(
         model="deepseek/deepseek-chat:free",
