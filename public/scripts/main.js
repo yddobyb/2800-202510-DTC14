@@ -48,3 +48,24 @@ window.addEventListener('DOMContentLoaded', () => {
         history.replaceState(null, '', 'forgotpassword.html');
     }
 });
+
+//reset password
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token') || '';
+    document.querySelector('[name=token]').value = token;
+
+    if (params.get('error') === 'invalid') {
+        alert('Invalid password reset link.');
+    }
+    if (params.get('error') === 'expired') {
+        alert('Your reset link has expired.');
+    }
+    if (params.get('error') === 'validation') {
+        alert('Passwords do not match.');
+    }
+    if (params.get('reset') === 'success') {
+        alert('Your password has been updated.');
+    }
+    history.replaceState(null, '', 'reset_password.html' + (token ? `?token=${token}` : ''));
+});
