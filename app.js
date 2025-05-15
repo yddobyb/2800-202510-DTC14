@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import metersRouter from './api/meters.js';
 import paymentRouter from './api/payment.js';
 import session from 'express-session';
+import crypto from 'crypto';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -59,6 +60,13 @@ try {
     console.log('Using mock user database for testing');
     database = null;
 }
+
+app.get('/', (req, res) => {
+    if (req.session.user) {
+        return res.redirect(`/main.html?login=success&userId=${req.session.user.id}`);
+    }
+    return res.redirect('/main');
+});
 
 // Serve signup page
 app.get('/signup', (req, res) => {
@@ -144,7 +152,7 @@ app.post('/login', async (req, res) => {
         if (!match) return res.redirect('/login.html?error=invalid');
 
         req.session.user = { id: userId, email };
-        if (remember) {
+        if (remember === 'on') {
             req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;
         } else {
             req.session.cookie.expires = false;
