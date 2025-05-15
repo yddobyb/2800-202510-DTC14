@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import metersRouter from './api/meters.js';
 import paymentRouter from './api/payment.js';
+import session from 'express-session';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -16,6 +17,12 @@ const app = express();
 // Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'keyboard cat',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }
+}));
 
 // Mock user database for testing
 const mockUsers = [
@@ -105,7 +112,7 @@ app.post('/signup', async (req, res) => {
 
 // Handle login form submission
 app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, remember } = req.body;
     try {
         let userFound = false;
         let userPassword = '';
@@ -130,10 +137,21 @@ app.post('/login', async (req, res) => {
             const mockUser = mockUsers.find(u => u.email === email);
             if (mockUser) { userFound = true; userPassword = mockUser.password; userId = mockUser.user_id; }
         }
+
         if (!userFound) return res.redirect('/login.html?error=invalid');
+
         const match = await bcrypt.compare(password, userPassword);
         if (!match) return res.redirect('/login.html?error=invalid');
+
+        req.session.user = { id: userId, email };
+        if (remember) {
+            req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;
+        } else {
+            req.session.cookie.expires = false;
+        }
+
         return res.redirect(`/main.html?login=success&userId=${userId}`);
+
     } catch (err) {
         console.error(err);
         return res.status(500).send('Server error');
