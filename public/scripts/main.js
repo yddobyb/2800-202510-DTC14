@@ -1,6 +1,6 @@
+
 const $input = document.getElementById('search-input');
 const $btn = document.getElementById('search-btn');
-
 
 async function fetchFunFact(place) {
     const res = await fetch(`/api/funfact?place=${encodeURIComponent(place)}`);
@@ -30,7 +30,6 @@ function showModal(place, fact) {
     });
 }
 
-
 async function handleSearch() {
     const query = $input.value.trim();
     if (!query) return;
@@ -42,14 +41,11 @@ async function handleSearch() {
     }
 }
 
+
 $btn.addEventListener('click', handleSearch);
 $input.addEventListener('keydown', e => {
     if (e.key === 'Enter') handleSearch();
 });
-
-
-
-
 
 
 

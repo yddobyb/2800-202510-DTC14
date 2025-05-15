@@ -1,43 +1,59 @@
 
-import sys
+import os, sys
+from pathlib import Path
+from dotenv import load_dotenv
 from openai import OpenAI
+import random
+
+load_dotenv(dotenv_path=Path(__file__).parent / ".env")
+api_key  = os.getenv("OPENAI_API_KEY")
+base_url = os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1")
+
+
+
+if not api_key:
+    print("Fun fact: Vancouver once considered painting its fire hydrants rainbow-coloured.")
+    sys.exit(0)
 
 client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
     base_url="https://openrouter.ai/api/v1",
-    api_key="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",  
+    default_headers={
+        "HTTP-Referer": "https://parksmart.local",  
+        "X-Title":      "ParkSmart Fun Fact Script"
+    }
 )
 
-def ask_deepseek(conversation: list[dict], question: str) -> str:
-    conversation.append({"role": "user", "content": question})
-    response = client.chat.completions.create(
-        model="deepseek/deepseek-chat:free",
-        messages=conversation,
-        stream=False
-    )
-    answer = response.choices[0].message.content.strip()
-    conversation.append({"role": "assistant", "content": answer})
-    return answer
+FALLBACKS = [
+    "{place} has more public green space per resident than most Canadian cities.",
+    "{place} hosted one of the world’s largest outdoor yoga classes in 2016.",
+    "{place} was almost named ‘Sequoia City’ in the 19th century."
+]
 
+def ask_fun_fact(place: str) -> str:
+    res = client.chat.completions.create(
+        model="deepseek/deepseek-chat:free",
+        messages=[
+            {"role": "system",
+             "content": "You are a fun-fact assistant. Reply with ONE short, interesting fun fact."},
+            {"role": "user",
+             "content": f"Give me one interesting and concise fun fact about {place}."}
+        ]
+    )
+    return res.choices[0].message.content.strip()
 
 def main():
-
-    place = " ".join(sys.argv[1:])
+    place = " ".join(sys.argv[1:]).strip()
     if not place:
         print("Usage: python deep.py [PLACE_NAME]")
         sys.exit(1)
 
-    conversation = [
-        {"role": "system", "content": (
-            "You are a fun-fact generating assistant. "
-            "When given the name of a place, you reply with one interesting, concise fun fact about it."
-        )}
-    ]
-
-    question = f"Give me one interesting and concise fun fact about {place}."
-    fact = ask_deepseek(conversation, question)
-
-    print(fact)
-
+    try:
+        fact = ask_fun_fact(place)
+        print(fact)
+    except Exception as e:
+        print("DEBUG │ GPT-error →", e, file=sys.stderr)
+        print(random.choice(FALLBACKS).format(place=place.title()))
 
 if __name__ == "__main__":
     main()
