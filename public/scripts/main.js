@@ -26,3 +26,10 @@ window.addEventListener('DOMContentLoaded', () => {
         history.replaceState(null, '', 'login.html');
     }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('error') === 'emailExists') {
+        document.getElementById('error-msg').textContent = 'This email address is already registered.';
+    }
+});
