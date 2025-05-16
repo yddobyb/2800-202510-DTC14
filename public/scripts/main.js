@@ -1,4 +1,3 @@
-
 const $input = document.getElementById('search-input');
 const $btn = document.getElementById('search-btn');
 
@@ -8,7 +7,6 @@ async function fetchFunFact(place) {
     const data = await res.json();
     return data.fact || 'No fun fact found.';
 }
-
 
 function showModal(place, fact) {
     const modal = document.createElement('div');
@@ -40,7 +38,6 @@ async function handleSearch() {
         alert(e.message);
     }
 }
-
 
 $btn.addEventListener('click', handleSearch);
 $input.addEventListener('keydown', e => {
