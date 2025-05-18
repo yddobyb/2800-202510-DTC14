@@ -42,6 +42,7 @@ def ask_fun_fact(place: str) -> str:
     )
     return res.choices[0].message.content.strip()
 
+
 def main():
     place = " ".join(sys.argv[1:]).strip()
     if not place:
