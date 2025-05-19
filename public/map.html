@@ -624,14 +624,14 @@
                     });
                 });
 
-            map.on('click', 'disability-clusters', e => {
-                const features = map.queryRenderedFeatures(e.point, { layers: ['disability-clusters'] });
-                const clusterId = features[0].properties.cluster_id;
-                map.getSource('disability').getClusterExpansionZoom(clusterId, (err, zoom) => {
-                    if (err) return;
-                    map.easeTo({ center: features[0].geometry.coordinates, zoom });
+                map.on('click', 'disability-clusters', e => {
+                    const features = map.queryRenderedFeatures(e.point, { layers: ['disability-clusters'] });
+                    const clusterId = features[0].properties.cluster_id;
+                    map.getSource('disability').getClusterExpansionZoom(clusterId, (err, zoom) => {
+                        if (err) return;
+                        map.easeTo({ center: features[0].geometry.coordinates, zoom });
+                    });
                 });
-            });
 
             } catch (err) {
                 console.error('Disability parking error:', err);
