@@ -260,6 +260,7 @@
                     }))
                 };
 
+                // Removes existing meter layers and meter source
                 if (map.getSource('meters')) {
                     map.removeLayer('clusters');
                     map.removeLayer('cluster-count');
@@ -267,6 +268,7 @@
                     map.removeSource('meters');
                 }
 
+                // Adds meters source to map
                 map.addSource('meters', {
                     type: 'geojson',
                     data: geojson,
@@ -275,6 +277,7 @@
                     clusterRadius: 50
                 });
 
+                // Adds circles to show a cluster of markers
                 map.addLayer({
                     id: 'clusters',
                     type: 'circle',
@@ -286,6 +289,7 @@
                     }
                 });
 
+                // Adds number of markers inside of cluster to the middle of circle
                 map.addLayer({
                     id: 'cluster-count',
                     type: 'symbol',
@@ -312,6 +316,7 @@
                         map.addImage('custom-pin', image);
                     }
 
+                    // Adds blue pin for each meter
                     map.addLayer({
                         id: 'unclustered-point',
                         type: 'symbol',
@@ -324,6 +329,7 @@
                         minzoom: 14
                     });
 
+                    // Triggers a popup when a marker is clicked
                     map.on('click', 'unclustered-point', (e) => {
                         const { street, rate } = e.features[0].properties;
                         new mapboxgl.Popup()
@@ -346,6 +352,7 @@
                     });
                 });
 
+                // Zooms map in when a cluster circle is clicked
                 map.on('click', 'clusters', (e) => {
                     const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
                     const clusterId = features[0].properties.cluster_id;
@@ -374,6 +381,7 @@
             }
         }
 
+        // Removes all markers and clusters from map
         function removeAllParkingLayers() {
             const parkingLayers = [
                 'clusters', 'cluster-count', 'unclustered-point', 'meters',
@@ -412,6 +420,7 @@
                     };
                 }).filter(Boolean);
 
+                // Removes existing motorcycle layers and motorcycle source
                 if (map.getSource('motorcycle')) {
                     map.removeLayer('motorcycle-clusters');
                     map.removeLayer('motorcycle-count');
@@ -419,6 +428,7 @@
                     map.removeSource('motorcycle');
                 }
 
+                // Adds motorcycle source to map
                 map.addSource('motorcycle', {
                     type: 'geojson',
                     data: { type: 'FeatureCollection', features },
@@ -427,6 +437,7 @@
                     clusterRadius: 50
                 });
 
+                // Adds circles to show a cluster of markers
                 map.addLayer({
                     id: 'motorcycle-clusters',
                     type: 'circle',
@@ -438,6 +449,7 @@
                     }
                 });
 
+                // Adds number of markers inside of cluster in the middle of circle
                 map.addLayer({
                     id: 'motorcycle-count',
                     type: 'symbol',
@@ -455,12 +467,14 @@
                     }
                 });
 
+                // Loads orange pin for unclustered points
                 map.loadImage('asset/orange_marker.png', (err, image) => {
                     if (err) throw err;
                     if (!map.hasImage('motorcycle-pin')) {
                         map.addImage('motorcycle-pin', image);
                     }
 
+                    // Adds orange pin for each motorcycle parking spot
                     map.addLayer({
                         id: 'motorcycle-points',
                         type: 'symbol',
@@ -473,6 +487,7 @@
                         minzoom: 14
                     });
 
+                    // Triggers a popup when a marker is clicked
                     map.on('click', 'motorcycle-points', e => {
                         const { location, rate } = e.features[0].properties;
                         new mapboxgl.Popup()
@@ -492,6 +507,7 @@
                     });
                 });
 
+                // Zooms map in when a cluster circle is clicked
                 map.on('click', 'motorcycle-clusters', e => {
                     const features = map.queryRenderedFeatures(e.point, { layers: ['motorcycle-clusters'] });
                     const clusterId = features[0].properties.cluster_id;
@@ -542,6 +558,7 @@
                     };
                 }).filter(Boolean);
 
+                // Removes existing disability layers and disability source
                 if (map.getSource('disability')) {
                     map.removeLayer('disability-clusters');
                     map.removeLayer('disability-count');
@@ -549,6 +566,7 @@
                     map.removeSource('disability');
                 }
 
+                // Adds disability spots source to map
                 map.addSource('disability', {
                     type: 'geojson',
                     data: { type: 'FeatureCollection', features },
@@ -557,6 +575,7 @@
                     clusterRadius: 50
                 });
 
+                // Adds circles to show a cluster of markers
                 map.addLayer({
                     id: 'disability-clusters',
                     type: 'circle',
@@ -568,6 +587,7 @@
                     }
                 });
 
+                // Adds number of markers inside of cluster to the middle of circle
                 map.addLayer({
                     id: 'disability-count',
                     type: 'symbol',
@@ -585,12 +605,14 @@
                     }
                 });
 
+                // Load purple pin for unclustered points
                 map.loadImage('asset/purple_marker.png', (err, image) => {
                     if (err) throw err;
                     if (!map.hasImage('disability-pin')) {
                         map.addImage('disability-pin', image);
                     }
 
+                    // Adds purple pin for each disability parking spot
                     map.addLayer({
                         id: 'disability-points',
                         type: 'symbol',
@@ -603,6 +625,7 @@
                         minzoom: 14
                     });
 
+                    // Triggers a popup when a marker is clicked
                     map.on('click', 'disability-points', e => {
                         const { location, description, notes, spaces, rate } = e.features[0].properties;
                         new mapboxgl.Popup()
@@ -624,6 +647,7 @@
                     });
                 });
 
+                // Zooms map in when a cluster circle is clicked
                 map.on('click', 'disability-clusters', e => {
                     const features = map.queryRenderedFeatures(e.point, { layers: ['disability-clusters'] });
                     const clusterId = features[0].properties.cluster_id;
