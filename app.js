@@ -10,7 +10,7 @@ import { execFile } from 'child_process';
 import nodemailer from 'nodemailer';
 import metersRouter from './api/meters.js';
 import paymentRouter from './api/payment.js';
-import favoritesRouter from './api/favorites.js';
+import createFavoritesRouter from './api/favorites.js';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -276,7 +276,7 @@ app.get('/api/funfact', (req, res) => {
         return res.json({ fact: stdout.toString().trim() });
     });
 });
-app.use('/api/favorites', favoritesRouter);
+app.use('/api/favorites', createFavoritesRouter(database));
 
 // Static files & 404
 app.use(express.static(path.join(__dirname, 'public'), {
