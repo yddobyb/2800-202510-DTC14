@@ -135,8 +135,8 @@
                 // Get the vehicle number from the page
                 const vehicleNumber = document.querySelector('li:nth-child(2) span:last-child').textContent.split(' ')[0];
                 
-                // Use hardcoded user ID (no authentication required)
-                const userId = 1; 
+                // Use null for user_id to avoid foreign key constraint issues
+                const userId = null; 
                 
                 // Send payment data to the server
                 const response = await fetch('/api/payment/save', {

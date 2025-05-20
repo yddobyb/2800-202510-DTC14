@@ -101,6 +101,18 @@
 
         // set fields
         const paymentId = params.get('payment_id') || sessionStorage.getItem('last_payment_id') || 'N/A';
+        
+        // Store parking info in localStorage for the status page
+        localStorage.setItem('parkingEndTime', end.getTime());
+        localStorage.setItem('currentPaymentId', paymentId);
+        localStorage.setItem('parkingStopped', 'false'); // Mark parking as active
+        localStorage.setItem('parkingStartTime', start.getTime());
+        localStorage.setItem('parkingLocation', zone);
+        localStorage.setItem('parkingRate', rateStr);
+        localStorage.setItem('parkingHours', hours);
+        localStorage.setItem('parkingMinutes', minutes);
+        localStorage.setItem('parkingTotal', total);
+
         document.getElementById('success-payment-id').textContent = paymentId;
         document.getElementById('success-zone').textContent = zone;
         document.getElementById('success-start').textContent = fmt(start);
