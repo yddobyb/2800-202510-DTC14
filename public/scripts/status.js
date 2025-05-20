@@ -1,179 +1,112 @@
 // Status page script to fetch and display payment data
 document.addEventListener('DOMContentLoaded', async function() {
     try {
-        console.log('Status page loaded, fetching payment data...');
-        // Default user ID (using zoey from mock data)
-        const userId = 1;
+        console.log('Status page loaded, checking for active parking...');
         
-        // Check if we have a stored timer end time and payment ID
+        // Check if we have stored parking data
         const storedEndTime = localStorage.getItem('parkingEndTime');
         const storedPaymentId = localStorage.getItem('currentPaymentId');
-        
-        // If we previously stopped parking, don't try to load it again
         const parkingStopped = localStorage.getItem('parkingStopped');
-        if (parkingStopped === 'true') {
-            console.log('Parking was previously stopped, showing inactive UI');
+        const parkingLocation = localStorage.getItem('parkingLocation');
+        const parkingRate = localStorage.getItem('parkingRate');
+        const parkingHours = localStorage.getItem('parkingHours');
+        const parkingMinutes = localStorage.getItem('parkingMinutes');
+        const parkingTotal = localStorage.getItem('parkingTotal');
+        
+        // If we previously stopped parking or no stored data, show inactive UI
+        if (parkingStopped === 'true' || !storedEndTime) {
+            console.log('No active parking found');
             showNoActiveParkingUI();
             return;
         }
         
-        // Fetch the latest payment data from the server
-        const response = await fetch(`/api/payment/history/${userId}`);
-        const data = await response.json();
-        console.log('Payment data received:', data);
+        console.log('Active parking found with end time:', new Date(parseInt(storedEndTime)));
         
-        if (data.success && data.payments && data.payments.length > 0) {
-            // Store payments in window for other functions to access
-            window.latestPayments = data.payments;
-            
-            // Get all payments with hours = 0 (stop records)
-            const stopRecords = data.payments.filter(payment => payment.hours === 0);
-            
-            // Get the most recent payment with hours > 0 (potentially active parking)
-            let latestPayment = null;
-            for (const payment of data.payments) {
-                // Check if payment has hours > 0 
-                if (payment.hours > 0) {
-                    latestPayment = payment;
-                    break;
-                }
-            }
-            
-            if (!latestPayment) {
-                console.log('No active parking found (no payments with hours > 0)');
-                // Clear stored data if no active parking
-                clearParkingData();
-                showNoActiveParkingUI();
-                return;
-            }
-            
-            // Check if there's a stop record that came after this payment
-            // Sort by payment_id (higher = more recent)
-            const sortedStopRecords = stopRecords.sort((a, b) => b.payment_id - a.payment_id);
-            
-            // If there's a stop record with a higher payment_id than our active record,
-            // it means this parking was stopped
-            if (sortedStopRecords.length > 0 && sortedStopRecords[0].payment_id > latestPayment.payment_id) {
-                console.log('Found a stop record newer than the latest payment, parking was stopped');
-                clearParkingData();
-                showNoActiveParkingUI();
-                return;
-            }
-            
-            console.log('Active payment found:', latestPayment);
-            
-            // Store payment ID for stop parking functionality
-            window.currentPaymentId = latestPayment.payment_id;
-            localStorage.setItem('currentPaymentId', latestPayment.payment_id);
-            
-            // Update parking spot (street number)
-            const parkingSpotElement = document.querySelector('.mt-16.px-10 div:nth-child(1) span:last-child');
-            if (parkingSpotElement) {
-                parkingSpotElement.textContent = latestPayment.street_number;
-            }
-            
-            // Calculate end time - either use stored end time or calculate new one
-            let endTime;
-            
-            if (storedEndTime && storedPaymentId === String(latestPayment.payment_id)) {
-                // Use stored end time if it exists and is for the same payment
-                endTime = new Date(parseInt(storedEndTime));
-                console.log('Using stored end time:', endTime);
-            } else {
-                // Otherwise calculate from payment data
-                // Ensure payment_date is a valid date
-                let paymentDate = new Date(latestPayment.payment_date);
-                // Check if date is valid
-                if (isNaN(paymentDate.getTime())) {
-                    console.log('Invalid payment date detected, using current time');
-                    // Use current time minus 1 minute as fallback
-                    paymentDate = new Date(Date.now() - 60000);
-                }
-                
-                const hoursInMs = latestPayment.hours * 60 * 60 * 1000;
-                endTime = new Date(paymentDate.getTime() + hoursInMs);
-                
-                // Store the end time in localStorage for persistence
-                localStorage.setItem('parkingEndTime', endTime.getTime());
-                
-                console.log('Calculated new end time:', endTime);
-            }
-            
-            const now = new Date();
-            
-            console.log('End time:', endTime);
-            console.log('Current time:', now);
-            
-            // Time left in milliseconds
-            const timeLeftMs = endTime - now;
-            console.log('Time left (ms):', timeLeftMs);
-            
-            if (timeLeftMs > 0) {
-                // Convert to hours and minutes
-                const hoursLeft = Math.floor(timeLeftMs / (60 * 60 * 1000));
-                const minutesLeft = Math.floor((timeLeftMs % (60 * 60 * 1000)) / (60 * 1000));
-                
-                console.log('Hours left:', hoursLeft);
-                console.log('Minutes left:', minutesLeft);
-                
-                // Update time left display
-                const timeLeftElement = document.getElementById('timeLeftDisplay');
-                if (timeLeftElement) {
-                    timeLeftElement.textContent = `${hoursLeft} hr ${minutesLeft} min`;
-                }
-                
-                // Update timer display
-                const timerElement = document.getElementById('timerDisplay');
-                if (timerElement) {
-                    timerElement.textContent = `${hoursLeft}:${minutesLeft.toString().padStart(2, '0')}`;
-                }
-                
-                // Start the countdown timer
-                startCountdown(endTime);
-            } else {
-                console.log('Parking has expired');
-                // Clear stored data if parking expired
-                clearParkingData();
-                // Parking has expired
-                showExpiredParkingUI();
-            }
-            
-            // Update total cost - ensure rate is a number
-            const totalCostElement = document.getElementById('totalCostDisplay');
-            if (totalCostElement) {
-                // Convert rate to number if it's not already
-                const rate = typeof latestPayment.rate === 'number' 
-                    ? latestPayment.rate 
-                    : parseFloat(String(latestPayment.rate)) || 0;
-                
-                // Calculate total cost (rate * hours)
-                const totalCost = rate * latestPayment.hours;
-                
-                totalCostElement.textContent = `$${totalCost.toFixed(2)}`;
-            }
-            
-            // Enable stop parking button
-            const stopParkingBtn = document.getElementById('stopParkingBtn');
-            if (stopParkingBtn) {
-                stopParkingBtn.disabled = false;
-                stopParkingBtn.classList.remove('opacity-50');
-            }
-            
-            // Enable extend time button
-            const extendTimeBtn = document.getElementById('extendTimeBtn');
-            if (extendTimeBtn) {
-                extendTimeBtn.disabled = false;
-                extendTimeBtn.classList.remove('opacity-50');
-            }
-            
-        } else {
-            console.log('No payment data found or error fetching data');
-            // Clear stored data if no payments found
-            clearParkingData();
-            showNoActiveParkingUI();
+        // Update parking spot (street number)
+        const parkingSpotElement = document.querySelector('.mt-16.px-10 div:nth-child(1) span:last-child');
+        if (parkingSpotElement && parkingLocation) {
+            parkingSpotElement.textContent = parkingLocation;
         }
+        
+        const endTime = new Date(parseInt(storedEndTime));
+        const now = new Date();
+        
+        console.log('End time:', endTime);
+        console.log('Current time:', now);
+        
+        // Time left in milliseconds
+        const timeLeftMs = endTime - now;
+        console.log('Time left (ms):', timeLeftMs);
+        
+        if (timeLeftMs > 0) {
+            // Convert to hours and minutes
+            const hoursLeft = Math.floor(timeLeftMs / (60 * 60 * 1000));
+            const minutesLeft = Math.floor((timeLeftMs % (60 * 60 * 1000)) / (60 * 1000));
+            
+            console.log('Hours left:', hoursLeft);
+            console.log('Minutes left:', minutesLeft);
+            
+            // Update time left display
+            const timeLeftElement = document.getElementById('timeLeftDisplay');
+            if (timeLeftElement) {
+                timeLeftElement.textContent = `${hoursLeft} hr ${minutesLeft} min`;
+            }
+            
+            // Update timer display
+            const timerElement = document.getElementById('timerDisplay');
+            if (timerElement) {
+                timerElement.textContent = `${hoursLeft}:${minutesLeft.toString().padStart(2, '0')}`;
+            }
+            
+            // Start the countdown timer
+            startCountdown(endTime);
+        } else {
+            console.log('Parking has expired');
+            // Clear stored data if parking expired
+            clearParkingData();
+            // Parking has expired
+            showExpiredParkingUI();
+            return;
+        }
+        
+        // Update total cost
+        const totalCostElement = document.getElementById('totalCostDisplay');
+        if (totalCostElement && parkingTotal) {
+            totalCostElement.textContent = `$${parkingTotal}`;
+        }
+        
+        // Enable stop parking button
+        const stopParkingBtn = document.getElementById('stopParkingBtn');
+        if (stopParkingBtn) {
+            stopParkingBtn.disabled = false;
+            stopParkingBtn.classList.remove('opacity-50');
+            
+            // Add click event listener
+            stopParkingBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to stop parking? This will end your current session.')) {
+                    handleStopParking();
+                }
+            });
+        }
+        
+        // Enable extend time button
+        const extendTimeBtn = document.getElementById('extendTimeBtn');
+        if (extendTimeBtn) {
+            extendTimeBtn.disabled = false;
+            extendTimeBtn.classList.remove('opacity-50');
+            
+            // Add click event listener for extend time button
+            extendTimeBtn.addEventListener('click', function() {
+                // Show extend time modal
+                const modal = document.getElementById('extendTimeModal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                }
+            });
+        }
+        
     } catch (error) {
-        console.error('Error fetching payment data:', error);
+        console.error('Error loading parking data:', error);
         showNoActiveParkingUI();
     }
 });
@@ -383,48 +316,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Handle stop parking
+// Helper function to handle the Stop Parking button click
 async function handleStopParking() {
-    // Get payment ID from window or localStorage
-    const paymentId = window.currentPaymentId || localStorage.getItem('currentPaymentId');
-    
-    if (!paymentId) {
-        alert('No active parking to stop');
-        return;
-    }
-    
-    if (confirm('Are you sure you want to stop parking? This will end your current session.')) {
-        try {
-            const response = await fetch(`/api/payment/stop/${paymentId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // Clear stored data on successful stop
-                clearParkingData();
-                
-                // Update UI immediately
-                showNoActiveParkingUI();
-                
-                // Notify user
-                alert(`Parking stopped. Final cost: $${result.actual_cost}`);
-                
-                // Redirect to map page after a short delay
-                setTimeout(() => {
-                    window.location.href = 'map.html';
-                }, 1000);
-            } else {
-                alert('Failed to stop parking: ' + result.message);
-            }
-        } catch (error) {
-            console.error('Error stopping parking:', error);
-            alert('Failed to stop parking. Please try again.');
-        }
+    try {
+        // Mark parking as stopped and clear active parking data
+        localStorage.setItem('parkingStopped', 'true');
+        
+        // Update UI to show no active parking
+        showNoActiveParkingUI();
+        
+        // Show confirmation message
+        alert('Parking has been stopped.');
+        
+    } catch (error) {
+        console.error('Error stopping parking:', error);
+        alert('Failed to stop parking. Please try again.');
     }
 }
 
@@ -541,4 +447,128 @@ async function handleExtendTime() {
     
     // Hide the modal
     document.getElementById('extendTimeModal').classList.add('hidden');
+}
+
+// Handle modal buttons
+const modalCancelBtn = document.getElementById('modalCancelBtn');
+if (modalCancelBtn) {
+    modalCancelBtn.addEventListener('click', function() {
+        const modal = document.getElementById('extendTimeModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    });
+}
+
+// Set up modal increment/decrement buttons for time adjustment
+setupModalTimeControls();
+
+// Function to set up modal time extension controls
+function setupModalTimeControls() {
+    // Get modal elements
+    const addTimeButtons = document.querySelectorAll('.modal-add-time-btn');
+    const incrementBtn = document.getElementById('modalIncrementTimeBtn');
+    const decrementBtn = document.getElementById('modalDecrementTimeBtn');
+    const timeDisplay = document.getElementById('modalManualTimeDisplay');
+    const timeToAddDisplay = document.getElementById('modalTimeToAdd');
+    const additionalCostDisplay = document.getElementById('modalAdditionalCost');
+    
+    // Set initial values
+    let minutesToAdd = 0;
+    let rate = parseFloat(localStorage.getItem('parkingRate')?.replace(/[^0-9.]/g, '') || '0');
+    
+    // Update displays function
+    function updateDisplays() {
+        // Format time display
+        if (timeDisplay) timeDisplay.textContent = minutesToAdd;
+        
+        // Format time to add display
+        if (timeToAddDisplay) {
+            timeToAddDisplay.textContent = minutesToAdd < 60 
+                ? `${minutesToAdd} min` 
+                : `${Math.floor(minutesToAdd / 60)} hr ${minutesToAdd % 60} min`;
+        }
+        
+        // Calculate and format cost
+        if (additionalCostDisplay) {
+            const cost = (rate * (minutesToAdd / 60)).toFixed(2);
+            additionalCostDisplay.textContent = `$${cost}`;
+        }
+    }
+    
+    // Handle preset time buttons (5, 10, 15, 30 mins)
+    if (addTimeButtons) {
+        addTimeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                minutesToAdd = parseInt(this.getAttribute('data-time'), 10) || 0;
+                updateDisplays();
+            });
+        });
+    }
+    
+    // Handle increment button
+    if (incrementBtn) {
+        incrementBtn.addEventListener('click', function() {
+            minutesToAdd += 5;
+            updateDisplays();
+        });
+    }
+    
+    // Handle decrement button
+    if (decrementBtn) {
+        decrementBtn.addEventListener('click', function() {
+            minutesToAdd = Math.max(0, minutesToAdd - 5);
+            updateDisplays();
+        });
+    }
+    
+    // Handle confirm button
+    const confirmBtn = document.getElementById('modalConfirmBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            if (minutesToAdd <= 0) {
+                alert('Please select a time to add');
+                return;
+            }
+            
+            // Get current end time
+            const currentEndTime = parseInt(localStorage.getItem('parkingEndTime'));
+            if (!currentEndTime) {
+                alert('No active parking session found');
+                return;
+            }
+            
+            // Add time to end time
+            const newEndTime = currentEndTime + (minutesToAdd * 60 * 1000);
+            localStorage.setItem('parkingEndTime', newEndTime);
+            
+            // Update total cost
+            const currentTotal = parseFloat(localStorage.getItem('parkingTotal') || '0');
+            const additionalCost = (rate * (minutesToAdd / 60));
+            const newTotal = (currentTotal + additionalCost).toFixed(2);
+            localStorage.setItem('parkingTotal', newTotal);
+            
+            // Update total cost display
+            const totalCostDisplay = document.getElementById('totalCostDisplay');
+            if (totalCostDisplay) {
+                totalCostDisplay.textContent = `$${newTotal}`;
+            }
+            
+            // Restart countdown timer with new end time
+            startCountdown(new Date(newEndTime));
+            
+            // Close modal
+            const modal = document.getElementById('extendTimeModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+            
+            // Show success message
+            alert(`Parking time extended by ${minutesToAdd} minutes`);
+            
+            // Reset minutes to add
+            minutesToAdd = 0;
+            updateDisplays();
+        });
+    }
 } 
