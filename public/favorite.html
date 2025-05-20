@@ -1,49 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <title>Favorites</title>
 </head>
 
-
 <body class="bg-white flex items-center justify-center min-h-screen">
   <div class="w-[440px] h-[956px] bg-white relative overflow-hidden">
     <div class="pb-[130px] overflow-y-auto h-full">
-
       <!-- Header -->
       <header class="text-center py-4 font-bold text-xl border-b">Favorites</header>
 
       <!-- Favorites List -->
-      <main class="flex-grow overflow-y-auto px-4">
-        <div class="py-4 border-b flex justify-between items-center">
-          <div>
-            <p class="font-semibold">Work</p>
-            <p class="text-sm text-gray-600">2684 W Broadway</p>
-          </div>
-          <button class="text-gray-600 hover:text-red-600">
-            <span class="text-xs">Delete</span>
-          </button>
-        </div>
-        <div class="py-4 border-b flex justify-between items-center">
-          <div>
-            <p class="font-semibold">School</p>
-            <p class="text-sm text-gray-600">2684 W Broadway</p>
-          </div>
-          <button class="text-gray-600 hover:text-red-600">
-            <span class="text-xs">Delete</span>
-          </button>
-        </div>
-        <div class="py-4 border-b flex justify-between items-center">
-          <div>
-            <p class="font-semibold">Dentist</p>
-            <p class="text-sm text-gray-600">2684 W Broadway</p>
-          </div>
-          <button class="text-gray-600 hover:text-red-600">
-            <span class="text-xs">Delete</span>
-          </button>
-        </div>
+      <main id="favorites-list" class="flex-grow overflow-y-auto px-4">
+        <!-- Favorites will be dynamically added here -->
       </main>
 
       <!-- 3) Bottom Navigation Bar -->
@@ -71,9 +44,56 @@
             <span class="text-[16px] text-[#6E6E6E] mt-2">Setting</span>
           </a>
         </div>
-
       </div>
     </div>
   </div>
+
+  <script>
+    // Function to load and display favorites
+    function loadFavorites() {
+      const favoritesList = document.getElementById('favorites-list');
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+
+      if (favorites.length === 0) {
+        favoritesList.innerHTML = `
+          <div class="py-8 text-center text-gray-500">
+            No favorites added yet
+          </div>
+        `;
+        return;
+      }
+
+      favoritesList.innerHTML = favorites.map((fav, index) => `
+        <div class="py-4 border-b flex justify-between items-center">
+          <div>
+            <p class="font-semibold">${fav.street}</p>
+            <p class="text-sm text-gray-600">Rate: ${fav.rate}</p>
+          </div>
+          <div class="flex space-x-2">
+            <button onclick="location.href='paymentpage.html?zone=${encodeURIComponent(fav.street)}&rate=${encodeURIComponent(fav.rate)}'" 
+                    class="px-3 py-1 bg-green-500 text-white rounded text-xs">
+              Pay
+            </button>
+            <button onclick="removeFavorite(${index})" 
+                    class="px-3 py-1 bg-red-500 text-white rounded text-xs">
+              Delete
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Function to remove a favorite
+    function removeFavorite(index) {
+      let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      favorites.splice(index, 1);
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+      loadFavorites();
+    }
+
+    // Load favorites when page loads
+    document.addEventListener('DOMContentLoaded', loadFavorites);
+  </script>
 </body>
+
 </html>

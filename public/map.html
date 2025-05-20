@@ -776,33 +776,27 @@
 
     <script>
         function addToFavorites(street, rate) {
-            const userId = localStorage.getItem('userId')
-            if (!userId) {
-                alert('You must be logged in to favorite spots.');
+            // Get existing favorites from localStorage
+            let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+
+            // Check if this location is already in favorites
+            const exists = favorites.some(fav => fav.street === street);
+
+            if (exists) {
+                alert('This location is already in your favorites!');
                 return;
             }
 
-            fetch('/api/favorites/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId,
-                    zone: street,
-                    rate: rate
-                })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Added to favorites!');
-                    } else {
-                        alert('Failed to add to favorites.');
-                    }
-                })
-                .catch(err => {
-                    console.error('Error adding favorite:', err);
-                    alert('Something went wrong.');
-                });
+            // Add new favorite
+            favorites.push({
+                street: street,
+                rate: rate,
+                timestamp: new Date().toISOString()
+            });
+
+            // Save back to localStorage
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            alert('Added to favorites!');
         }
     </script>
 
