@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Create payment history table if it doesn't exist
 CREATE TABLE IF NOT EXISTS paymentHistory (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    user_id INT,
     vehicle_number VARCHAR(20) NOT NULL,
     rate DECIMAL(10, 2) NOT NULL,
     street_number VARCHAR(50) NOT NULL,
