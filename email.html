@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,28 +14,36 @@
     </style>
     <title>Document</title>
 </head>
+
 <body>
     <header class=" flex relative py-4 pb-16">
         <h1 class="text-[28px] font-inter-bold absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-center">
             <b>Email</b>
-          </h1>
-          <p class="py-2 absolute left-4" onclick="history.back()"><img src="asset/arrow.png" class="w-4 h-4" alt=""></p>
+        </h1>
+        <p class="py-2 absolute left-4" onclick="history.back()"><img src="asset/arrow.png" class="w-4 h-4" alt=""></p>
     </header>
 
     <div class="px-9 py-4">
-        <div>
-    <div class="pb-4">
-        <h1 class="text-[16px] font-inter-bold pb-2"><b>Update Email</b></h1>
-        <h1>You’ll use this email to receive messages, sign in, and recover your account.</h1>
+        <form action="/update-email" method="POST">
+            <div class="pb-4">
+                <h1 class="text-[16px] font-inter-bold pb-2"><b>Update Email</b></h1>
+                <h1>You’ll use this email to receive messages, sign in, and recover your account.</h1>
+            </div>
+            <div class="relative bg-gray-200 rounded-lg w-full max-w-md">
+                <input type="email" name="newEmail" required
+                    class="w-full bg-transparent px-4 py-2 rounded-lg focus:outline-none" placeholder="New Email" />
+            </div>
+            <br>
+            <div class="flex justify-center md:justify-start">
+                <button type="submit"
+                    class="rounded-full bg-[#2553E9] py-4 text-white w-full font-inter-bold text-[18px] max-w-md">
+                    Update
+                </button>
+            </div>
+        </form>
     </div>
-    <div class="relative bg-gray-200 rounded-lg w-full max-w-md">
-        <input class="w-full bg-transparent px-4 py-2 rounded-lg focus:outline-none" placeholder="New Email"/>
-    </div>
-    </div>
-    <br>
-    <div class="flex justify-center md: justify-start"><button class="rounded-full bg-[#2553E9] py-4 text-white  w-full font-inter-bold text-[18px] max-w-md">Update</button></div>
 
-</div>
-      
+
 </body>
+
 </html>
