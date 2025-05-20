@@ -201,7 +201,7 @@
         </div>
     </div>
 
-    
+
     <!-- Mapbox GL JS -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script>
@@ -224,7 +224,7 @@
             if (!res.ok) throw new Error('Failed to fetch /api/meters');
             return (await res.json()).meters;
         }
-        
+
         // Display regular parking meters on the map
         async function displayMeterPins() {
             try {
@@ -360,7 +360,7 @@
             }
         }
 
-        
+
         // Clear all markers from the map
         function clearAllMarkers() {
             if (currentMarkers.length > 0) {
@@ -382,7 +382,7 @@
             });
         }
 
-        
+
         // Fetch and display motorcycle parking data
         async function displayMotorcycleParking() {
             try {
@@ -509,7 +509,7 @@
                 console.error('Motorcycle parking error:', err);
             }
         }
-        
+
         // Fetch and display disability parking data
         async function displayDisabilityParking() {
             try {
@@ -649,11 +649,19 @@
                 console.error('Disability parking error:', err);
             }
         }
-        
+
         // Initialize map with regular meters
         map.on('load', () => {
             displayMeterPins();
-            
+
+            // Handle search query from URL if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('query');
+            if (searchQuery) {
+                document.getElementById('search-input').value = searchQuery;
+                handleSearch();
+            }
+
             // Add click event listeners to the toggle buttons
             document.querySelectorAll('.toggle-btn').forEach(button => {
                 button.addEventListener('click', function () {
@@ -760,7 +768,7 @@
         $input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
 
         // When map page loads, clear the parkingStopped flag
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             localStorage.removeItem('parkingStopped');
         });
 
@@ -778,24 +786,24 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                userId,
-                zone: street,
-                rate: rate
+                    userId,
+                    zone: street,
+                    rate: rate
                 })
             })
                 .then(res => res.json())
                 .then(data => {
-                if (data.success) {
-                    alert('Added to favorites!');
-                } else {
-                    alert('Failed to add to favorites.');
-                }
+                    if (data.success) {
+                        alert('Added to favorites!');
+                    } else {
+                        alert('Failed to add to favorites.');
+                    }
                 })
                 .catch(err => {
-                console.error('Error adding favorite:', err);
-                alert('Something went wrong.');
+                    console.error('Error adding favorite:', err);
+                    alert('Something went wrong.');
                 });
-            }
+        }
     </script>
 
     <!-- Filter panel behavior -->
