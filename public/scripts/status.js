@@ -21,65 +21,65 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         console.log('Active parking found with end time:', new Date(parseInt(storedEndTime)));
-        
-        // Update parking spot (street number)
-        const parkingSpotElement = document.querySelector('.mt-16.px-10 div:nth-child(1) span:last-child');
+            
+            // Update parking spot (street number)
+            const parkingSpotElement = document.querySelector('.mt-16.px-10 div:nth-child(1) span:last-child');
         if (parkingSpotElement && parkingLocation) {
             parkingSpotElement.textContent = parkingLocation;
         }
         
         const endTime = new Date(parseInt(storedEndTime));
-        const now = new Date();
-        
-        console.log('End time:', endTime);
-        console.log('Current time:', now);
-        
-        // Time left in milliseconds
-        const timeLeftMs = endTime - now;
-        console.log('Time left (ms):', timeLeftMs);
-        
-        if (timeLeftMs > 0) {
-            // Convert to hours and minutes
-            const hoursLeft = Math.floor(timeLeftMs / (60 * 60 * 1000));
-            const minutesLeft = Math.floor((timeLeftMs % (60 * 60 * 1000)) / (60 * 1000));
+            const now = new Date();
             
-            console.log('Hours left:', hoursLeft);
-            console.log('Minutes left:', minutesLeft);
+            console.log('End time:', endTime);
+            console.log('Current time:', now);
             
-            // Update time left display
-            const timeLeftElement = document.getElementById('timeLeftDisplay');
-            if (timeLeftElement) {
-                timeLeftElement.textContent = `${hoursLeft} hr ${minutesLeft} min`;
-            }
+            // Time left in milliseconds
+            const timeLeftMs = endTime - now;
+            console.log('Time left (ms):', timeLeftMs);
             
-            // Update timer display
-            const timerElement = document.getElementById('timerDisplay');
-            if (timerElement) {
-                timerElement.textContent = `${hoursLeft}:${minutesLeft.toString().padStart(2, '0')}`;
-            }
-            
-            // Start the countdown timer
-            startCountdown(endTime);
-        } else {
-            console.log('Parking has expired');
-            // Clear stored data if parking expired
-            clearParkingData();
-            // Parking has expired
-            showExpiredParkingUI();
+            if (timeLeftMs > 0) {
+                // Convert to hours and minutes
+                const hoursLeft = Math.floor(timeLeftMs / (60 * 60 * 1000));
+                const minutesLeft = Math.floor((timeLeftMs % (60 * 60 * 1000)) / (60 * 1000));
+                
+                console.log('Hours left:', hoursLeft);
+                console.log('Minutes left:', minutesLeft);
+                
+                // Update time left display
+                const timeLeftElement = document.getElementById('timeLeftDisplay');
+                if (timeLeftElement) {
+                    timeLeftElement.textContent = `${hoursLeft} hr ${minutesLeft} min`;
+                }
+                
+                // Update timer display
+                const timerElement = document.getElementById('timerDisplay');
+                if (timerElement) {
+                    timerElement.textContent = `${hoursLeft}:${minutesLeft.toString().padStart(2, '0')}`;
+                }
+                
+                // Start the countdown timer
+                startCountdown(endTime);
+            } else {
+                console.log('Parking has expired');
+                // Clear stored data if parking expired
+                clearParkingData();
+                // Parking has expired
+                showExpiredParkingUI();
             return;
-        }
-        
+            }
+            
         // Update total cost
-        const totalCostElement = document.getElementById('totalCostDisplay');
+            const totalCostElement = document.getElementById('totalCostDisplay');
         if (totalCostElement && parkingTotal) {
             totalCostElement.textContent = `$${parkingTotal}`;
-        }
-        
-        // Enable stop parking button
-        const stopParkingBtn = document.getElementById('stopParkingBtn');
-        if (stopParkingBtn) {
-            stopParkingBtn.disabled = false;
-            stopParkingBtn.classList.remove('opacity-50');
+            }
+            
+            // Enable stop parking button
+            const stopParkingBtn = document.getElementById('stopParkingBtn');
+            if (stopParkingBtn) {
+                stopParkingBtn.disabled = false;
+                stopParkingBtn.classList.remove('opacity-50');
             
             // Add click event listener
             stopParkingBtn.addEventListener('click', function() {
@@ -88,12 +88,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
             });
         }
-        
-        // Enable extend time button
-        const extendTimeBtn = document.getElementById('extendTimeBtn');
-        if (extendTimeBtn) {
-            extendTimeBtn.disabled = false;
-            extendTimeBtn.classList.remove('opacity-50');
+            
+            // Enable extend time button
+            const extendTimeBtn = document.getElementById('extendTimeBtn');
+            if (extendTimeBtn) {
+                extendTimeBtn.disabled = false;
+                extendTimeBtn.classList.remove('opacity-50');
             
             // Add click event listener for extend time button
             extendTimeBtn.addEventListener('click', function() {
@@ -323,14 +323,14 @@ async function handleStopParking() {
         localStorage.setItem('parkingStopped', 'true');
         
         // Update UI to show no active parking
-        showNoActiveParkingUI();
-        
+                showNoActiveParkingUI();
+                
         // Show confirmation message
         alert('Parking has been stopped.');
         
-    } catch (error) {
-        console.error('Error stopping parking:', error);
-        alert('Failed to stop parking. Please try again.');
+        } catch (error) {
+            console.error('Error stopping parking:', error);
+            alert('Failed to stop parking. Please try again.');
     }
 }
 
