@@ -1,12 +1,3 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const alertBtn = document.getElementById('heatmap-btn');
-
-    alertBtn.addEventListener('click', () => {
-        alertBtn.classList.toggle('border-transparent');
-        alertBtn.classList.toggle('border-[#2553E9]');
-    });
-});
-
 let currentMarker = null;
 let watchId = null;
 document.getElementById('locate-btn').addEventListener('click', () => {

@@ -47,15 +47,38 @@ router.post('/save', async (req, res) => {
     
     const totalHours = parseFloat(hours) + (parseFloat(minutes || 0) / 60);
     
-    // Insert into actual MySQL database
+    // Check if user_id is provided - if not, use special guest user flow
+    if (!user_id) {
+      // For guest users, store data without foreign key constraints
+      const [result] = await pool.execute(
+        'INSERT INTO paymentHistory (user_id, vehicle_number, rate, street_number, hours) VALUES (NULL, ?, ?, ?, ?)',
+        [vehicle_number, rateValue, street_number, totalHours]
+      );
+      
+      console.log('Guest payment saved to database:', {
+        payment_id: result.insertId,
+        vehicle_number,
+        rate: rateValue,
+        street_number,
+        hours: totalHours
+      });
+      
+      return res.status(200).json({
+        success: true,
+        payment_id: result.insertId,
+        message: 'Guest payment recorded successfully'
+      });
+    }
+    
+    // For authenticated users, use the normal flow with user_id
     const [result] = await pool.execute(
       'INSERT INTO paymentHistory (user_id, vehicle_number, rate, street_number, hours) VALUES (?, ?, ?, ?, ?)',
-      [user_id || 1, vehicle_number, rateValue, street_number, totalHours]
+      [user_id, vehicle_number, rateValue, street_number, totalHours]
     );
     
     console.log('Payment saved to database:', {
       payment_id: result.insertId,
-      user_id: user_id || 1,
+      user_id,
       vehicle_number,
       rate: rateValue,
       street_number,
@@ -128,12 +151,11 @@ router.post('/stop/:paymentId', async (req, res) => {
     // Calculate prorated cost based on actual time used
     const proratedCost = (payment.rate * Math.min(usedTimeHours, payment.hours)).toFixed(2);
     
-    // Instead of creating a new record with active=0,
-    // Simply create a record with 0 hours to indicate the parking has stopped
+    // Handle both guest and authenticated users
     await pool.execute(
       'INSERT INTO paymentHistory (user_id, vehicle_number, rate, street_number, hours) VALUES (?, ?, ?, ?, ?)',
       [
-        payment.user_id,
+        payment.user_id, // This will be NULL for guest users
         payment.vehicle_number,
         0, // Zero rate for stop record
         payment.street_number,
@@ -142,10 +164,10 @@ router.post('/stop/:paymentId', async (req, res) => {
     );
     
     res.status(200).json({
-      success: true,
-      message: 'Parking stopped successfully',
-      actual_hours: Math.min(usedTimeHours, payment.hours),
-      actual_cost: proratedCost
+        success: true,
+        message: 'Parking stopped successfully',
+        actual_hours: Math.min(usedTimeHours, payment.hours),
+        actual_cost: proratedCost
     });
   } catch (error) {
     console.error('Error stopping parking:', error);
