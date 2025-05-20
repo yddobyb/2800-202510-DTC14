@@ -101,9 +101,39 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const modal = document.getElementById('extendTimeModal');
                 if (modal) {
                     modal.classList.remove('hidden');
+                    
+                    // Reset the minutes display when opening the modal
+                    const timeDisplay = document.getElementById('modalManualTimeDisplay');
+                    if (timeDisplay) timeDisplay.textContent = '0';
+                    
+                    const timeToAddDisplay = document.getElementById('modalTimeToAdd');
+                    if (timeToAddDisplay) timeToAddDisplay.textContent = '0 min';
+                    
+                    const additionalCostDisplay = document.getElementById('modalAdditionalCost');
+                    if (additionalCostDisplay) additionalCostDisplay.textContent = '$0.00';
                 }
             });
         }
+
+        // Handle modal cancel button
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        if (modalCancelBtn) {
+            modalCancelBtn.addEventListener('click', function() {
+                const modal = document.getElementById('extendTimeModal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Handle modal confirm button
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        if (modalConfirmBtn) {
+            modalConfirmBtn.addEventListener('click', handleExtendTime);
+        }
+        
+        // Set up modal increment/decrement buttons for time adjustment
+        setupModalTimeControls();
         
     } catch (error) {
         console.error('Error loading parking data:', error);
@@ -247,75 +277,6 @@ function startCountdown(endTime) {
     }, 1000);
 }
 
-// Set up event listeners after DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle stop parking button
-    const stopParkingBtn = document.getElementById('stopParkingBtn');
-    if (stopParkingBtn) {
-        stopParkingBtn.addEventListener('click', handleStopParking);
-    }
-    
-    // Handle extend time button
-    const extendTimeBtn = document.getElementById('extendTimeBtn');
-    if (extendTimeBtn) {
-        extendTimeBtn.addEventListener('click', function() {
-            const modal = document.getElementById('extendTimeModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-            }
-        });
-    }
-    
-    // Handle modal cancel button
-    const modalCancelBtn = document.getElementById('modalCancelBtn');
-    if (modalCancelBtn) {
-        modalCancelBtn.addEventListener('click', function() {
-            const modal = document.getElementById('extendTimeModal');
-            if (modal) {
-                modal.classList.add('hidden');
-            }
-        });
-    }
-    
-    // Handle time increment buttons in modal
-    const timeButtons = document.querySelectorAll('.modal-add-time-btn');
-    timeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const minutes = parseInt(this.dataset.time);
-            const currentTime = parseInt(document.getElementById('modalManualTimeDisplay').textContent);
-            document.getElementById('modalManualTimeDisplay').textContent = currentTime + minutes;
-            updateModalCost();
-        });
-    });
-    
-    // Handle manual increment/decrement
-    const modalIncrementTimeBtn = document.getElementById('modalIncrementTimeBtn');
-    if (modalIncrementTimeBtn) {
-        modalIncrementTimeBtn.addEventListener('click', function() {
-            const currentTime = parseInt(document.getElementById('modalManualTimeDisplay').textContent);
-            document.getElementById('modalManualTimeDisplay').textContent = currentTime + 5;
-            updateModalCost();
-        });
-    }
-    
-    const modalDecrementTimeBtn = document.getElementById('modalDecrementTimeBtn');
-    if (modalDecrementTimeBtn) {
-        modalDecrementTimeBtn.addEventListener('click', function() {
-            const currentTime = parseInt(document.getElementById('modalManualTimeDisplay').textContent);
-            if (currentTime >= 5) {
-                document.getElementById('modalManualTimeDisplay').textContent = currentTime - 5;
-                updateModalCost();
-            }
-        });
-    }
-    
-    // Handle confirm button in modal
-    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
-    if (modalConfirmBtn) {
-        modalConfirmBtn.addEventListener('click', handleExtendTime);
-    }
-});
-
 // Helper function to handle the Stop Parking button click
 async function handleStopParking() {
     try {
@@ -334,134 +295,8 @@ async function handleStopParking() {
     }
 }
 
-// Update modal cost based on time
-function updateModalCost() {
-    const minutes = parseInt(document.getElementById('modalManualTimeDisplay').textContent);
-    const rateText = document.getElementById('totalCostDisplay').textContent;
-    
-    // Get the total cost from the display
-    const totalCost = parseFloat(rateText.replace(/[^0-9.]/g, ''));
-    
-    // Get the active payment to determine hourly rate
-    const paymentId = window.currentPaymentId || localStorage.getItem('currentPaymentId');
-    
-    // Calculate hourly rate based on total cost and hours
-    let hourlyRate = 0;
-    const payments = window.latestPayments;
-    
-    if (payments && payments.length > 0) {
-        for (const payment of payments) {
-            if (payment.payment_id == paymentId) {
-                // Convert rate to number if it's not already
-                hourlyRate = typeof payment.rate === 'number' 
-                    ? payment.rate 
-                    : parseFloat(String(payment.rate)) || 0;
-                break;
-            }
-        }
-    }
-    
-    // Fallback: if we couldn't find the payment or rate
-    if (hourlyRate === 0) {
-        // Try to estimate hourly rate from total cost
-        const hoursDisplay = document.getElementById('timeLeftDisplay').textContent;
-        const hoursMatch = hoursDisplay.match(/(\d+)\s*hr/);
-        const hours = hoursMatch ? parseInt(hoursMatch[1]) : 1;
-        
-        if (hours > 0) {
-            hourlyRate = totalCost / hours;
-        } else {
-            // Just use a default rate of $2.50 as last resort
-            hourlyRate = 2.50;
-        }
-    }
-    
-    const additionalCost = (hourlyRate * minutes / 60).toFixed(2);
-    document.getElementById('modalTimeToAdd').textContent = `${minutes} min`;
-    document.getElementById('modalAdditionalCost').textContent = `$${additionalCost}`;
-}
-
-// Handle extend time
-async function handleExtendTime() {
-    const minutes = parseInt(document.getElementById('modalManualTimeDisplay').textContent);
-    if (minutes <= 0) return;
-    
-    try {
-        // Get the current payment data
-        const userId = 1; // Default user ID
-        const response = await fetch(`/api/payment/history/${userId}`);
-        const data = await response.json();
-        
-        if (data.success && data.payments && data.payments.length > 0) {
-            // Find the most recent payment with hours > 0
-            let latestPayment = null;
-            for (const payment of data.payments) {
-                if (payment.hours > 0) {
-                    latestPayment = payment;
-                    break;
-                }
-            }
-            
-            if (!latestPayment) {
-                alert('No active parking found');
-                return;
-            }
-            
-            // Ensure rate is a number
-            const rate = typeof latestPayment.rate === 'number' 
-                ? latestPayment.rate 
-                : parseFloat(String(latestPayment.rate)) || 0;
-            
-            // Create a new payment with extended time
-            const extendResponse = await fetch('/api/payment/save', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    user_id: userId,
-                    vehicle_number: latestPayment.vehicle_number,
-                    rate: rate,
-                    street_number: latestPayment.street_number,
-                    hours: 0,
-                    minutes: minutes
-                })
-            });
-            
-            const extendResult = await extendResponse.json();
-            
-            if (extendResult.success) {
-                // Remove the parkingStopped flag since we're extending the time
-                localStorage.removeItem('parkingStopped');
-                
-                // Reload the page to show updated time
-                window.location.reload();
-            } else {
-                alert('Failed to extend time: ' + extendResult.message);
-            }
-        }
-    } catch (error) {
-        console.error('Error extending time:', error);
-        alert('Failed to extend time. Please try again.');
-    }
-    
-    // Hide the modal
-    document.getElementById('extendTimeModal').classList.add('hidden');
-}
-
-// Handle modal buttons
-const modalCancelBtn = document.getElementById('modalCancelBtn');
-if (modalCancelBtn) {
-    modalCancelBtn.addEventListener('click', function() {
-        const modal = document.getElementById('extendTimeModal');
-        if (modal) {
-            modal.classList.add('hidden');
-        }
-    });
-}
-
-// Set up modal increment/decrement buttons for time adjustment
-setupModalTimeControls();
+// Create a variable to store minutesToAdd that can be accessed across functions
+let globalMinutesToAdd = 0;
 
 // Function to set up modal time extension controls
 function setupModalTimeControls() {
@@ -474,24 +309,24 @@ function setupModalTimeControls() {
     const additionalCostDisplay = document.getElementById('modalAdditionalCost');
     
     // Set initial values
-    let minutesToAdd = 0;
+    globalMinutesToAdd = 0;
     let rate = parseFloat(localStorage.getItem('parkingRate')?.replace(/[^0-9.]/g, '') || '0');
     
     // Update displays function
     function updateDisplays() {
         // Format time display
-        if (timeDisplay) timeDisplay.textContent = minutesToAdd;
+        if (timeDisplay) timeDisplay.textContent = globalMinutesToAdd;
         
         // Format time to add display
         if (timeToAddDisplay) {
-            timeToAddDisplay.textContent = minutesToAdd < 60 
-                ? `${minutesToAdd} min` 
-                : `${Math.floor(minutesToAdd / 60)} hr ${minutesToAdd % 60} min`;
+            timeToAddDisplay.textContent = globalMinutesToAdd < 60 
+                ? `${globalMinutesToAdd} min` 
+                : `${Math.floor(globalMinutesToAdd / 60)} hr ${globalMinutesToAdd % 60} min`;
         }
         
         // Calculate and format cost
         if (additionalCostDisplay) {
-            const cost = (rate * (minutesToAdd / 60)).toFixed(2);
+            const cost = (rate * (globalMinutesToAdd / 60)).toFixed(2);
             additionalCostDisplay.textContent = `$${cost}`;
         }
     }
@@ -500,7 +335,7 @@ function setupModalTimeControls() {
     if (addTimeButtons) {
         addTimeButtons.forEach(button => {
             button.addEventListener('click', function() {
-                minutesToAdd = parseInt(this.getAttribute('data-time'), 10) || 0;
+                globalMinutesToAdd = parseInt(this.getAttribute('data-time'), 10) || 0;
                 updateDisplays();
             });
         });
@@ -509,7 +344,7 @@ function setupModalTimeControls() {
     // Handle increment button
     if (incrementBtn) {
         incrementBtn.addEventListener('click', function() {
-            minutesToAdd += 5;
+            globalMinutesToAdd += 5;
             updateDisplays();
         });
     }
@@ -517,58 +352,106 @@ function setupModalTimeControls() {
     // Handle decrement button
     if (decrementBtn) {
         decrementBtn.addEventListener('click', function() {
-            minutesToAdd = Math.max(0, minutesToAdd - 5);
+            globalMinutesToAdd = Math.max(0, globalMinutesToAdd - 5);
             updateDisplays();
         });
     }
     
-    // Handle confirm button
-    const confirmBtn = document.getElementById('modalConfirmBtn');
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', function() {
-            if (minutesToAdd <= 0) {
-                alert('Please select a time to add');
-                return;
+    // The confirm button handler is now in the main DOMContentLoaded event listener
+    // to avoid duplicate event listeners
+}
+
+// Handle extend time
+async function handleExtendTime() {
+    if (globalMinutesToAdd <= 0) {
+        alert('Please select a time to add');
+        return;
+    }
+    
+    try {
+        // Get current end time
+        const currentEndTime = parseInt(localStorage.getItem('parkingEndTime'));
+        if (!currentEndTime) {
+            alert('No active parking session found');
+            return;
+        }
+        
+        // Add time to end time
+        const newEndTime = currentEndTime + (globalMinutesToAdd * 60 * 1000);
+        localStorage.setItem('parkingEndTime', newEndTime);
+        
+        // Get rate from localStorage
+        const rate = parseFloat(localStorage.getItem('parkingRate')?.replace(/[^0-9.]/g, '') || '2.50');
+        
+        // Update total cost
+        const currentTotal = parseFloat(localStorage.getItem('parkingTotal') || '0');
+        const additionalCost = (rate * (globalMinutesToAdd / 60));
+        const newTotal = (currentTotal + additionalCost).toFixed(2);
+        localStorage.setItem('parkingTotal', newTotal);
+        
+        // Update total cost display
+        const totalCostDisplay = document.getElementById('totalCostDisplay');
+        if (totalCostDisplay) {
+            totalCostDisplay.textContent = `$${newTotal}`;
+        }
+        
+        // Restart countdown timer with new end time
+        startCountdown(new Date(newEndTime));
+        
+        // Close modal
+        const modal = document.getElementById('extendTimeModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+        
+        // Show success message
+        alert(`Parking time extended by ${globalMinutesToAdd} minutes`);
+        
+        // Reset minutes to add
+        globalMinutesToAdd = 0;
+        
+        // You might also want to try to update the server, but we'll use local storage first
+        try {
+            // Get the current payment data
+            const userId = 1; // Default user ID
+            const response = await fetch(`/api/payment/history/${userId}`);
+            const data = await response.json();
+            
+            if (data.success && data.payments && data.payments.length > 0) {
+                // Find the most recent payment with hours > 0
+                let latestPayment = null;
+                for (const payment of data.payments) {
+                    if (payment.hours > 0) {
+                        latestPayment = payment;
+                        break;
+                    }
+                }
+                
+                if (latestPayment) {
+                    // Create a new payment with extended time
+                    await fetch('/api/payment/save', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            user_id: userId,
+                            vehicle_number: latestPayment.vehicle_number,
+                            rate: rate,
+                            street_number: latestPayment.street_number,
+                            hours: 0,
+                            minutes: globalMinutesToAdd
+                        })
+                    });
+                }
             }
-            
-            // Get current end time
-            const currentEndTime = parseInt(localStorage.getItem('parkingEndTime'));
-            if (!currentEndTime) {
-                alert('No active parking session found');
-                return;
-            }
-            
-            // Add time to end time
-            const newEndTime = currentEndTime + (minutesToAdd * 60 * 1000);
-            localStorage.setItem('parkingEndTime', newEndTime);
-            
-            // Update total cost
-            const currentTotal = parseFloat(localStorage.getItem('parkingTotal') || '0');
-            const additionalCost = (rate * (minutesToAdd / 60));
-            const newTotal = (currentTotal + additionalCost).toFixed(2);
-            localStorage.setItem('parkingTotal', newTotal);
-            
-            // Update total cost display
-            const totalCostDisplay = document.getElementById('totalCostDisplay');
-            if (totalCostDisplay) {
-                totalCostDisplay.textContent = `$${newTotal}`;
-            }
-            
-            // Restart countdown timer with new end time
-            startCountdown(new Date(newEndTime));
-            
-            // Close modal
-            const modal = document.getElementById('extendTimeModal');
-            if (modal) {
-                modal.classList.add('hidden');
-            }
-            
-            // Show success message
-            alert(`Parking time extended by ${minutesToAdd} minutes`);
-            
-            // Reset minutes to add
-            minutesToAdd = 0;
-            updateDisplays();
-        });
+        } catch (serverError) {
+            console.error('Error updating server:', serverError);
+            // Continue with local storage changes even if server update fails
+        }
+        
+    } catch (error) {
+        console.error('Error extending time:', error);
+        alert('Failed to extend time. Please try again.');
     }
 } 
