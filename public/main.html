@@ -30,19 +30,20 @@
         <!-- Search Bar -->
         <div class="relative mt-4">
             <div class="w-full h-[60px] bg-[#E2E2E2] rounded-[15px] flex items-center justify-between pl-5">
-                <input type="text" placeholder="Search Location"
+                <input id="search-input" type="text" placeholder="Search Location"
                     class="bg-transparent text-[18px] text-[#6E6E6E] outline-none w-[82%]">
-                <div class="w-[45px] h-[45px] bg-[#2553E9] rounded-[15px] flex items-center justify-center mr-[8px]">
+                <button id="search-btn"
+                    class="w-[45px] h-[45px] bg-[#2553E9] rounded-[15px] flex items-center justify-center mr-[8px]">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                </div>
+                </button>
             </div>
         </div>
 
         <!-- Current Location Button -->
-        <div class="flex justify-center mt-[70px]">
+        <div class="flex justify-center mt-[100px]">
             <a href="./map.html">
                 <div class="relative h-[170px] w-[170px]">
                     <img src="./asset/location.png" class="h-[170px] w-[170px]" />
@@ -62,20 +63,15 @@
 
         <!-- Bottom Buttons -->
         <div class="absolute bottom-28 left-1/2 transform -translate-x-1/2 w-[207px] space-y-5">
-            <!-- Scan QR Code Button -->
-            <button class="w-full h-[54px] border border-[#7C7C7C] rounded-[5px] flex items-center justify-center">
-                <span class="text-[18px] font-extrabold text-[#2553E9]">Scan QR Code</span>
-            </button>
-
             <!-- Login/Signup Links -->
             <div id="guest-links" class="flex items-center justify-center space-x-4">
-                <a href="./login.html" class="text-[17px] font-extrabold text-[#6E6E6E]">Log In</a>
+                <a href="/login" class="text-[17px] font-extrabold text-[#6E6E6E]">Log In</a>
                 <span class="text-[#6E6E6E]">/</span>
-                <a href="./signup.html" class="text-[17px] font-extrabold text-[#2553E9]">Sign Up</a>
+                <a href="/signup" class="text-[17px] font-extrabold text-[#2553E9]">Sign Up</a>
             </div>
         </div>
     </div>
-
+    <script src="./scripts/authentication.js"></script>
     <script src="./scripts/main.js"></script>
 </body>
 

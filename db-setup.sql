@@ -13,6 +13,16 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create favorites table if it doesn't exist
+CREATE TABLE IF NOT EXISTS favorites (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    meter_id VARCHAR(255),
+    location_name VARCHAR(255),
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 -- Create payment history table if it doesn't exist
 CREATE TABLE IF NOT EXISTS paymentHistory (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,

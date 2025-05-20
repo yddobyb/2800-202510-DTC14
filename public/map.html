@@ -170,18 +170,6 @@
                 class="w-[66px] h-[66px] bg-white rounded-full shadow-[0_4px_6px_-1px_rgba(0,0,0,0.4)] flex items-center justify-center">
                 <img src="asset/current.png" class="w-[30px]" alt="Current Location" />
             </button>
-
-            <!-- Scan QR Button -->
-            <button id="scan-btn"
-                class="w-[66px] h-[66px] bg-white rounded-full shadow-[0_4px_6px_-1px_rgba(0,0,0,0.4)] flex items-center justify-center">
-                <img src="asset/scan.png" class="w-[35px]" alt="Scan QR" />
-            </button>
-
-            <!-- Heat-Map Button -->
-            <button id="heatmap-btn"
-                class="w-[66px] h-[66px] bg-white rounded-full shadow-[0_4px_6px_-1px_rgba(0,0,0,0.4)] border-4 border-transparent flex items-center justify-center">
-                <img src="asset/heatmap.png" class="w-[50px]" alt="Alert" />
-            </button>
         </div>
 
         <!-- 3) Bottom Navigation Bar -->
@@ -189,12 +177,12 @@
             class="absolute bottom-0 left-0 w-full h-[113px] bg-white z-10 rounded-t-[40px] p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.4)]">
             <div class="flex justify-between items-center h-full px-4">
                 <!-- Map Tab -->
-                <a href="./map.html" class="nav-item flex flex-col items-center" data-type="Map">
+                <a href="#" class="nav-item flex flex-col items-center" data-type="Map">
                     <img src="./asset/blueMap.png" class="w-[30px]">
                     <span class="text-[16px] text-[#2553E9] mt-2">Map</span>
                 </a>
                 <!-- Favorite Tab -->
-                <a href="#" class="nav-item flex flex-col items-center" data-type="Favorite">
+                <a href="./favorite.html" class="nav-item flex flex-col items-center" data-type="Favorite">
                     <img src="./asset/grayFavorite.png" class="w-[30px]">
                     <span class="text-[16px] text-[#6E6E6E] mt-2">Favorite</span>
                 </a>
@@ -213,6 +201,7 @@
         </div>
     </div>
 
+    
     <!-- Mapbox GL JS -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script>
@@ -239,45 +228,138 @@
         // Display regular parking meters on the map
         async function displayMeterPins() {
             try {
-                // Clear current markers only if they exist
+                // Clear current markers if they exist
                 clearAllMarkers();
-                
+                removeAllParkingLayers();
+
                 const meters = await fetchMeters();
-                meters.forEach(({ coords, street, rate }) => {
-                    const marker = new mapboxgl.Marker()
-                        .setLngLat(coords)
-                        .setPopup(new mapboxgl.Popup({ offset: 25 })
-                            .setHTML(`
-                        <div class="flex flex-col space-y-1">
-                          <span class="font-semibold">${street}</span>
-                          <span>Fee: ${rate}</span>
-                          <div class="flex space-x-2 pt-1">
-                            <button class="px-3 py-1 bg-red-500 text-white rounded">Fav</button>
-                            <button
-                              class="px-3 py-1 bg-green-500 text-white rounded"
-                              onclick="
-                                location.href = 
-                                  'paymentpage.html'
-                                  + '?zone=${encodeURIComponent(street)}'
-                                  + '&rate=${encodeURIComponent(rate)}'
-                              "
-                            >
-                              Pay
-                            </button>
-                          </div>
-                                        </div>
-                        `)
-                        )
-                        .addTo(map);
-                    
-                    // Add marker to current markers array
-                    currentMarkers.push(marker);
+                const geojson = {
+                    type: 'FeatureCollection',
+                    features: meters.map(m => ({
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: m.coords
+                        },
+                        properties: {
+                            street: m.street,
+                            rate: m.rate
+                        }
+                    }))
+                };
+
+                // Removes existing meter layers and meter source
+                if (map.getSource('meters')) {
+                    map.removeLayer('clusters');
+                    map.removeLayer('cluster-count');
+                    map.removeLayer('unclustered-point');
+                    map.removeSource('meters');
+                }
+
+                // Adds meters source to map
+                map.addSource('meters', {
+                    type: 'geojson',
+                    data: geojson,
+                    cluster: true,
+                    clusterMaxZoom: 14,
+                    clusterRadius: 50
                 });
 
+                // Adds circles to show a cluster of markers
+                map.addLayer({
+                    id: 'clusters',
+                    type: 'circle',
+                    source: 'meters',
+                    filter: ['has', 'point_count'],
+                    paint: {
+                        'circle-color': '#51bbd6',
+                        'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40]
+                    }
+                });
+
+                // Adds number of markers inside of cluster to the middle of circle
+                map.addLayer({
+                    id: 'cluster-count',
+                    type: 'symbol',
+                    source: 'meters',
+                    filter: ['has', 'point_count'],
+                    layout: {
+                        'text-field': '{point_count_abbreviated}',
+                        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                        'text-size': 14,
+                        'text-anchor': 'center',
+                        'text-offset': [0, 0]
+                    },
+                    paint: {
+                        'text-color': '#ffffff'
+                    }
+                });
+
+
+                // Load blue pin for unclustered points
+                map.loadImage('asset/blue_marker.png', (error, image) => {
+                    if (error) throw error;
+
+                    if (!map.hasImage('custom-pin')) {
+                        map.addImage('custom-pin', image);
+                    }
+
+                    // Adds blue pin for each meter
+                    map.addLayer({
+                        id: 'unclustered-point',
+                        type: 'symbol',
+                        source: 'meters',
+                        filter: ['!', ['has', 'point_count']],
+                        layout: {
+                            'icon-image': 'custom-pin',
+                            'icon-size': 0.04
+                        },
+                        minzoom: 14
+                    });
+
+                    // Triggers a popup when a marker is clicked
+                    map.on('click', 'unclustered-point', (e) => {
+                        const { street, rate } = e.features[0].properties;
+                        new mapboxgl.Popup()
+                            .setLngLat(e.lngLat)
+                            .setHTML(`
+                                <div class="flex flex-col space-y-1">
+                                    <span class="font-semibold">${street}</span>
+                                    <span>Fee: ${rate}</span>
+                                    <div class="flex space-x-2 pt-1">
+                                        <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${street}', '${rate}')">Fav</button>
+                                        <button class="px-3 py-1 bg-green-500 text-white rounded" onclick="
+                                            location.href = 'paymentpage.html'
+                                            + '?zone=${encodeURIComponent(street)}'
+                                            + '&rate=${encodeURIComponent(rate)}'
+                                        ">Pay</button>
+                                    </div>
+                                </div>
+                            `)
+                            .addTo(map);
+                    });
+                });
+
+                // Zooms map in when a cluster circle is clicked
+                map.on('click', 'clusters', (e) => {
+                    const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+                    const clusterId = features[0].properties.cluster_id;
+                    map.getSource('meters').getClusterExpansionZoom(clusterId, (err, zoom) => {
+                        if (err) return;
+                        map.easeTo({
+                            center: features[0].geometry.coordinates,
+                            zoom: zoom
+                        });
+                    });
+                });
+
+                map.on('mouseenter', 'clusters', () => map.getCanvas().style.cursor = 'pointer');
+                map.on('mouseleave', 'clusters', () => map.getCanvas().style.cursor = '');
             } catch (err) {
                 console.error(err);
             }
         }
+
         
         // Clear all markers from the map
         function clearAllMarkers() {
@@ -286,76 +368,145 @@
                 currentMarkers = [];
             }
         }
+
+        // Removes all markers and clusters from map
+        function removeAllParkingLayers() {
+            const parkingLayers = [
+                'clusters', 'cluster-count', 'unclustered-point', 'meters',
+                'motorcycle-clusters', 'motorcycle-count', 'motorcycle-points', 'motorcycle',
+                'disability-clusters', 'disability-count', 'disability-points', 'disability'
+            ];
+            parkingLayers.forEach(id => {
+                if (map.getLayer(id)) map.removeLayer(id);
+                if (map.getSource(id)) map.removeSource(id);
+            });
+        }
+
         
         // Fetch and display motorcycle parking data
         async function displayMotorcycleParking() {
             try {
                 clearAllMarkers();
-                
+                removeAllParkingLayers();
+
                 const response = await fetch('motorcycle-parking.json');
                 if (!response.ok) throw new Error('Failed to fetch motorcycle parking data');
                 const motorcycleData = await response.json();
-                
-                motorcycleData.forEach(spot => {
-                    if (spot.geo_point_2d && spot.geo_point_2d.lon && spot.geo_point_2d.lat) {
-                        const coords = [spot.geo_point_2d.lon, spot.geo_point_2d.lat];
-                        let rate = 'N/A';
-                        
-                        // Get rate info if available - prioritize weekday daytime rate
-                        if (spot.r_mf_9a_6p) {
-                            rate = spot.r_mf_9a_6p;
-                        } else if (spot.rate_misc) {
-                            rate = spot.rate_misc;
-                        } else if (spot.r_sa_9a_6p) {
-                            rate = spot.r_sa_9a_6p;
-                        } else if (spot.r_mf_6p_10) {
-                            rate = spot.r_mf_6p_10;
-                        }
-                        
-                        // Format rate to ensure it's valid
-                        if (rate === null || rate === undefined) {
-                            rate = '$1.00'; // Default rate if none specified
-                        }
-                        
-                        // Create location string
-                        let location = spot.location || 'Motorcycle Parking';
-                        if (location === 'n/a') {
-                            location = `Motorcycle Parking ${spot.geo_local_area || ''}`.trim();
-                        }
-                        
-                        // Create marker
-                        const marker = new mapboxgl.Marker({ color: '#FF8C00' }) // Orange color for motorcycle parking
-                            .setLngLat(coords)
-                            .setPopup(new mapboxgl.Popup({ offset: 25 })
-                                .setHTML(`
-                                <div class="flex flex-col space-y-1">
-                                  <span class="font-semibold">${location}</span>
-                                  <span>Type: ${spot.type || 'Motorcycle Parking'}</span>
-                                  <span>Fee: ${rate}</span>
-                                  <div class="flex space-x-2 pt-1">
-                                    <button class="px-3 py-1 bg-red-500 text-white rounded">Fav</button>
-                                    <button
-                                      class="px-3 py-1 bg-green-500 text-white rounded"
-                                      onclick="
-                                        location.href = 
-                                          'paymentpage.html'
-                                          + '?zone=${encodeURIComponent(location)}'
-                                          + '&rate=${encodeURIComponent(rate)}'
-                                      "
-                                    >
-                                      Pay
-                                    </button>
-                                  </div>
-                                </div>
-                            `)
-                            )
-                            .addTo(map);
-                        
-                        currentMarkers.push(marker);
+
+                const features = motorcycleData.map(spot => {
+                    if (!spot.geo_point_2d || !spot.geo_point_2d.lon || !spot.geo_point_2d.lat) return null;
+                    let rate = spot.r_mf_9a_6p || spot.rate_misc || spot.r_sa_9a_6p || spot.r_mf_6p_10 || '$1.00';
+                    let location = spot.location === 'n/a' ? `Motorcycle Parking ${spot.geo_local_area || ''}`.trim() : (spot.location || 'Motorcycle Parking');
+
+                    return {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [spot.geo_point_2d.lon, spot.geo_point_2d.lat]
+                        },
+                        properties: { location, rate }
+                    };
+                }).filter(Boolean);
+
+                // Removes existing motorcycle layers and motorcycle source
+                if (map.getSource('motorcycle')) {
+                    map.removeLayer('motorcycle-clusters');
+                    map.removeLayer('motorcycle-count');
+                    map.removeLayer('motorcycle-points');
+                    map.removeSource('motorcycle');
+                }
+
+                // Adds motorcycle source to map
+                map.addSource('motorcycle', {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features },
+                    cluster: true,
+                    clusterMaxZoom: 14,
+                    clusterRadius: 50
+                });
+
+                // Adds circles to show a cluster of markers
+                map.addLayer({
+                    id: 'motorcycle-clusters',
+                    type: 'circle',
+                    source: 'motorcycle',
+                    filter: ['has', 'point_count'],
+                    paint: {
+                        'circle-color': '#ff9900',
+                        'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40]
                     }
                 });
+
+                // Adds number of markers inside of cluster in the middle of circle
+                map.addLayer({
+                    id: 'motorcycle-count',
+                    type: 'symbol',
+                    source: 'motorcycle',
+                    filter: ['has', 'point_count'],
+                    layout: {
+                        'text-field': '{point_count_abbreviated}',
+                        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                        'text-size': 14,
+                        'text-anchor': 'center',
+                        'text-offset': [0, 0]
+                    },
+                    paint: {
+                        'text-color': '#ffffff'
+                    }
+                });
+
+                // Loads orange pin for unclustered points
+                map.loadImage('asset/orange_marker.png', (err, image) => {
+                    if (err) throw err;
+                    if (!map.hasImage('motorcycle-pin')) {
+                        map.addImage('motorcycle-pin', image);
+                    }
+
+                    // Adds orange pin for each motorcycle parking spot
+                    map.addLayer({
+                        id: 'motorcycle-points',
+                        type: 'symbol',
+                        source: 'motorcycle',
+                        filter: ['!', ['has', 'point_count']],
+                        layout: {
+                            'icon-image': 'motorcycle-pin',
+                            'icon-size': 0.04
+                        },
+                        minzoom: 14
+                    });
+
+                    // Triggers a popup when a marker is clicked
+                    map.on('click', 'motorcycle-points', e => {
+                        const { location, rate } = e.features[0].properties;
+                        new mapboxgl.Popup()
+                            .setLngLat(e.lngLat)
+                            .setHTML(`
+                                <div class="flex flex-col space-y-1">
+                                <span class="font-semibold">${location}</span>
+                                <span>Type: Motorcycle Parking</span>
+                                <span>Fee: ${rate}</span>
+                                <div class="flex space-x-2 pt-1">
+                                    <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${location}', '${rate}')">Fav</button>
+                                    <button class="px-3 py-1 bg-green-500 text-white rounded" onclick="location.href='paymentpage.html?zone=${encodeURIComponent(location)}&rate=${encodeURIComponent(rate)}'">Pay</button>
+                                </div>
+                                </div>
+                            `)
+                            .addTo(map);
+                    });
+                });
+
+                // Zooms map in when a cluster circle is clicked
+                map.on('click', 'motorcycle-clusters', e => {
+                    const features = map.queryRenderedFeatures(e.point, { layers: ['motorcycle-clusters'] });
+                    const clusterId = features[0].properties.cluster_id;
+                    map.getSource('motorcycle').getClusterExpansionZoom(clusterId, (err, zoom) => {
+                        if (err) return;
+                        map.easeTo({ center: features[0].geometry.coordinates, zoom });
+                    });
+                });
+
             } catch (err) {
-                console.error('Error displaying motorcycle parking:', err);
+                console.error('Motorcycle parking error:', err);
             }
         }
         
@@ -363,68 +514,139 @@
         async function displayDisabilityParking() {
             try {
                 clearAllMarkers();
-                
+                removeAllParkingLayers();
+
                 const response = await fetch('disability-parking.json');
                 if (!response.ok) throw new Error('Failed to fetch disability parking data');
                 const disabilityData = await response.json();
-                
-                disabilityData.forEach(spot => {
-                    if (spot.geo_point_2d && spot.geo_point_2d.lon && spot.geo_point_2d.lat) {
-                        const coords = [spot.geo_point_2d.lon, spot.geo_point_2d.lat];
-                        
-                        // For disability parking, set a standard rate based on the location
-                        let rate = '$2.00'; // Default rate for disability parking
-                        
-                        // Get location, use a default if not provided
-                        let location = spot.location || 'Disability Parking';
-                        
-                        // Modify rate based on area if possible
-                        if (spot.geo_local_area) {
-                            const area = spot.geo_local_area.toLowerCase();
-                            if (area.includes('downtown')) {
-                                rate = '$3.50';
-                            } else if (area.includes('west end') || area.includes('kitsilano')) {
-                                rate = '$2.50';
-                            } else if (area.includes('hastings') || area.includes('commercial')) {
-                                rate = '$1.50';
-                            }
+
+                const features = disabilityData.map(spot => {
+                    if (!spot.geo_point_2d || !spot.geo_point_2d.lon || !spot.geo_point_2d.lat) return null;
+                    let rate = '$2.00';
+                    const area = spot.geo_local_area?.toLowerCase() || '';
+                    if (area.includes('downtown')) rate = '$3.50';
+                    else if (area.includes('west end') || area.includes('kitsilano')) rate = '$2.50';
+                    else if (area.includes('hastings') || area.includes('commercial')) rate = '$1.50';
+
+                    let location = spot.location || 'Disability Parking';
+
+                    return {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [spot.geo_point_2d.lon, spot.geo_point_2d.lat]
+                        },
+                        properties: {
+                            location,
+                            rate,
+                            notes: spot.notes || 'No additional information',
+                            description: spot.description || 'Disability Zone',
+                            spaces: spot.spaces || 1
                         }
-                        
-                        // Create marker
-                        const marker = new mapboxgl.Marker({ color: '#0074D9' }) // Blue color for disability parking
-                            .setLngLat(coords)
-                            .setPopup(new mapboxgl.Popup({ offset: 25 })
-                                .setHTML(`
-                                <div class="flex flex-col space-y-1">
-                                  <span class="font-semibold">${location}</span>
-                                  <span>Type: ${spot.description || 'Disability Zone'}</span>
-                                  <span>Notes: ${spot.notes || 'No additional information'}</span>
-                                  <span>Spaces: ${spot.spaces || 1}</span>
-                                  <span>Fee: ${rate}</span>
-                                  <div class="flex space-x-2 pt-1">
-                                    <button class="px-3 py-1 bg-red-500 text-white rounded">Fav</button>
-                                    <button
-                                      class="px-3 py-1 bg-green-500 text-white rounded"
-                                      onclick="
-                                        location.href = 
-                                          'paymentpage.html'
-                                          + '?zone=${encodeURIComponent(location)}'
-                                          + '&rate=${encodeURIComponent(rate)}'
-                                      "
-                                    >
-                                      Pay
-                                    </button>
-                                  </div>
-                                </div>
-                            `)
-                            )
-                            .addTo(map);
-                        
-                        currentMarkers.push(marker);
+                    };
+                }).filter(Boolean);
+
+                // Removes existing disability layers and disability source
+                if (map.getSource('disability')) {
+                    map.removeLayer('disability-clusters');
+                    map.removeLayer('disability-count');
+                    map.removeLayer('disability-points');
+                    map.removeSource('disability');
+                }
+
+                // Adds disability spots source to map
+                map.addSource('disability', {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features },
+                    cluster: true,
+                    clusterMaxZoom: 14,
+                    clusterRadius: 50
+                });
+
+                // Adds circles to show a cluster of markers
+                map.addLayer({
+                    id: 'disability-clusters',
+                    type: 'circle',
+                    source: 'disability',
+                    filter: ['has', 'point_count'],
+                    paint: {
+                        'circle-color': '#a855f7',
+                        'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40]
                     }
                 });
+
+                // Adds number of markers inside of cluster to the middle of circle
+                map.addLayer({
+                    id: 'disability-count',
+                    type: 'symbol',
+                    source: 'disability',
+                    filter: ['has', 'point_count'],
+                    layout: {
+                        'text-field': '{point_count_abbreviated}',
+                        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                        'text-size': 14,
+                        'text-anchor': 'center',
+                        'text-offset': [0, 0]
+                    },
+                    paint: {
+                        'text-color': '#ffffff'
+                    }
+                });
+
+                // Load purple pin for unclustered points
+                map.loadImage('asset/purple_marker.png', (err, image) => {
+                    if (err) throw err;
+                    if (!map.hasImage('disability-pin')) {
+                        map.addImage('disability-pin', image);
+                    }
+
+                    // Adds purple pin for each disability parking spot
+                    map.addLayer({
+                        id: 'disability-points',
+                        type: 'symbol',
+                        source: 'disability',
+                        filter: ['!', ['has', 'point_count']],
+                        layout: {
+                            'icon-image': 'disability-pin',
+                            'icon-size': 0.04
+                        },
+                        minzoom: 14
+                    });
+
+                    // Triggers a popup when a marker is clicked
+                    map.on('click', 'disability-points', e => {
+                        const { location, description, notes, spaces, rate } = e.features[0].properties;
+                        new mapboxgl.Popup()
+                            .setLngLat(e.lngLat)
+                            .setHTML(`
+                                <div class="flex flex-col space-y-1">
+                                <span class="font-semibold">${location}</span>
+                                <span>Type: ${description}</span>
+                                <span>Notes: ${notes}</span>
+                                <span>Spaces: ${spaces}</span>
+                                <span>Fee: ${rate}</span>
+                                <div class="flex space-x-2 pt-1">
+                                    <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${location}', '${rate}')">Fav</button>
+                                    <button class="px-3 py-1 bg-green-500 text-white rounded" onclick="location.href='paymentpage.html?zone=${encodeURIComponent(location)}&rate=${encodeURIComponent(rate)}'">Pay</button>
+                                </div>
+                                </div>
+                            `)
+                            .addTo(map);
+                    });
+                });
+
+                // Zooms map in when a cluster circle is clicked
+                map.on('click', 'disability-clusters', e => {
+                    const features = map.queryRenderedFeatures(e.point, { layers: ['disability-clusters'] });
+                    const clusterId = features[0].properties.cluster_id;
+                    map.getSource('disability').getClusterExpansionZoom(clusterId, (err, zoom) => {
+                        if (err) return;
+                        map.easeTo({ center: features[0].geometry.coordinates, zoom });
+                    });
+                });
+
             } catch (err) {
-                console.error('Error displaying disability parking:', err);
+                console.error('Disability parking error:', err);
             }
         }
         
@@ -434,40 +656,65 @@
             
             // Add click event listeners to the toggle buttons
             document.querySelectorAll('.toggle-btn').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const type = this.getAttribute('data-type');
-                    
-                    // Remove active class from all buttons
-                    document.querySelectorAll('.toggle-btn').forEach(btn => {
-                        btn.classList.remove('border-[#2553E9]');
-                        
-                        // Reset text and icon color
-                        const textSpan = btn.querySelector('span');
-                        if (textSpan) textSpan.classList.remove('text-[#2553E9]');
-                        if (textSpan) textSpan.classList.add('text-[#6E6E6E]');
-                    });
-                    
+
                     // If this button is already active (clicking the active filter again)
                     if (this.classList.contains('active')) {
-                        this.classList.remove('active', 'border-[#2553E9]');
+                        this.classList.remove('active', 'border-orange-500', 'border-purple-500');
+
+                        // Reset text color and icon
+                        const textSpan = this.querySelector('span');
+                        if (textSpan) {
+                            textSpan.classList.remove('text-[#2553E9]');
+                            textSpan.classList.add('text-[#6E6E6E]');
+                        }
+
+                        const img = this.querySelector('img');
+                        if (type === 'Motorcycle') img.src = 'asset/grayMotorcycle.png';
+                        if (type === 'Disability') img.src = 'asset/grayDisability.png';
+
                         displayMeterPins(); // Show regular meters
                         return;
                     }
-                    
+
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.toggle-btn').forEach(btn => {
+                        btn.classList.remove('active', 'border-orange-500', 'border-purple-500');
+
+                        // Reset text and icon color
+                        const textSpan = btn.querySelector('span');
+                        if (textSpan) {
+                            textSpan.classList.remove('text-[#2553E9]');
+                            textSpan.classList.add('text-[#6E6E6E]');
+                        }
+
+                        const img = btn.querySelector('img');
+                        const btnType = btn.getAttribute('data-type');
+                        if (btnType === 'Motorcycle') img.src = 'asset/grayMotorcycle.png';
+                        if (btnType === 'Disability') img.src = 'asset/grayDisability.png';
+                    });
+
                     // Mark this button as active
-                    this.classList.add('active', 'border-[#2553E9]');
-                    
+                    this.classList.add('active');
+
                     // Change text color to blue for active button
                     const textSpan = this.querySelector('span');
                     if (textSpan) {
                         textSpan.classList.remove('text-[#6E6E6E]');
                         textSpan.classList.add('text-[#2553E9]');
                     }
-                    
+
+                    const img = this.querySelector('img');
+
                     // Display the corresponding parking type
                     if (type === 'Motorcycle') {
+                        this.classList.add('border-orange-500');
+                        if (img) img.src = 'asset/blueMotorcycle.png';
                         displayMotorcycleParking();
                     } else if (type === 'Disability') {
+                        this.classList.add('border-purple-500');
+                        if (img) img.src = 'asset/blueDisability.png';
                         displayDisabilityParking();
                     }
                 });
@@ -519,7 +766,40 @@
 
     </script>
 
+    <script>
+        function addToFavorites(street, rate) {
+            const userId = localStorage.getItem('userId')
+            if (!userId) {
+                alert('You must be logged in to favorite spots.');
+                return;
+            }
+
+            fetch('/api/favorites/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                userId,
+                zone: street,
+                rate: rate
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                if (data.success) {
+                    alert('Added to favorites!');
+                } else {
+                    alert('Failed to add to favorites.');
+                }
+                })
+                .catch(err => {
+                console.error('Error adding favorite:', err);
+                alert('Something went wrong.');
+                });
+            }
+    </script>
+
     <!-- Filter panel behavior -->
+    <script src="scripts/map.js"></script>
     <script src="scripts/filter.js"></script>
     <script src="scripts/navigation_bar.js"></script>
     <script src="scripts/action_btn.js"></script>
