@@ -11,6 +11,8 @@ import nodemailer from 'nodemailer';
 import metersRouter from './api/meters.js';
 import paymentRouter from './api/payment.js';
 import createFavoritesRouter from './api/favorites.js';
+import createPasswordRouter from './api/password.js';
+import createEmailRouter from './api/email.js';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -388,6 +390,99 @@ app.get('/api/funfact', (req, res) => {
 });
 app.use('/api/favorites', createFavoritesRouter(database));
 
+// GET Notification preference
+app.get('/api/preferences', async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+
+        const userId = req.session.user.id;
+
+        const [rows] = await database.execute(
+            'SELECT notification_preference, notifications_enabled FROM users WHERE user_id = ?',
+            [userId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        return res.json({
+            notificationTime: rows[0].notification_preference,
+            notificationsEnabled: rows[0].notifications_enabled === 1 // Convert to boolean
+        });
+    } catch (error) {
+        console.error('Error getting preferences:', error);
+        return res.status(500).json({ error: 'An unexpected error occurred' });
+    }
+});
+
+// POST Notification preference
+app.post('/api/preferences/notifications', async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+
+        const userId = req.session.user.id;
+        const { notificationTime } = req.body;
+
+        const validTimes = ['10', '30', '45', '60'];
+        if (!validTimes.includes(notificationTime)) {
+            return res.status(400).json({ error: 'Invalid notification time' });
+        }
+
+        await database.execute(
+            'UPDATE users SET notification_preference = ? WHERE user_id = ?',
+            [notificationTime, userId]
+        );
+
+        return res.status(200).json({
+            message: 'Notification preference updated',
+            notificationTime
+        });
+    } catch (error) {
+        console.error('Error updating notification preference:', error);
+        return res.status(500).json({ error: 'An unexpected error occurred' });
+    }
+});
+
+// Enable/disable Notifications preference
+app.post('/api/preferences/notifications-enabled', async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+
+        const userId = req.session.user.id;
+        const { enabled } = req.body;
+
+        if (typeof enabled !== 'boolean') {
+            return res.status(400).json({ error: 'Invalid value for enabled' });
+        }
+
+        await database.execute(
+            'UPDATE users SET notifications_enabled = ? WHERE user_id = ?',
+            [enabled ? 1 : 0, userId]
+        );
+
+        return res.status(200).json({
+            message: 'Notification setting updated',
+            enabled
+        });
+    } catch (error) {
+        console.error('Error updating notification setting:', error);
+        return res.status(500).json({ error: 'An unexpected error occurred' });
+    }
+});
+
+// Update Password
+app.use('/password', createPasswordRouter(database));
+
+// Update Email
+app.use('/email', createEmailRouter(database));
+
 // Static files & 404
 app.use(express.static(path.join(__dirname, 'public'), {
     extensions: ['html']
@@ -397,3 +492,11 @@ app.use((req, res) => res.status(404).send('Not found'));
 // Start server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+app.get('/test-session', (req, res) => {
+    res.json({
+        isLoggedIn: !!req.session.user,
+        session: req.session,
+        user: req.session.user || 'Not logged in'
+    });
+});
