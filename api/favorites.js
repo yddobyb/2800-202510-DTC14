@@ -5,16 +5,17 @@ export default function createFavoritesRouter(database) {
 
   // Add to favorites
   router.post('/add', async (req, res) => {
-    const { userId, nickname, meterId, locationName } = req.body;
-    if (!userId || !meterId || !locationName) {
+    const { userId, nickname, meterId } = req.body;
+
+    if (!userId || !meterId) {
       return res.status(400).json({ success: false, message: 'Missing data' });
     }
 
     try {
       await database.execute(
-        `INSERT INTO favorites (user_id, nickname, meter_id, location_name)
-         VALUES (?, ?, ?, ?)`,
-        [userId, nickname || null, meterId, locationName]
+        `INSERT INTO favorites (user_id, nickname, meter_id)
+       VALUES (?, ?, ?)`,
+        [userId, nickname || null, meterId]
       );
       res.json({ success: true, message: 'Favorite added' });
     } catch (err) {
@@ -30,15 +31,15 @@ export default function createFavoritesRouter(database) {
     try {
       const [rows] = await database.execute(
         `SELECT 
-          f.id,
-          f.nickname,
-          f.meter_id,
-          f.added_at,
-          pm.rate,
-          pm.meterid AS location_name
-        FROM favorites f
-        JOIN parking_meters pm ON f.meter_id = pm.meterid
-        WHERE f.user_id = ?`,
+        f.id,
+        f.nickname,
+        f.meter_id,
+        f.added_at,
+        pm.rate,
+        pm.meterid AS location_name
+      FROM favorites f
+      JOIN parking_meters pm ON f.meter_id = pm.meterid
+      WHERE f.user_id = ?`,
         [userId]
       );
 
@@ -70,7 +71,7 @@ export default function createFavoritesRouter(database) {
     const { id } = req.params;
     try {
       const [rows] = await database.execute(
-        'SELECT id, nickname, meter_id, location_name FROM favorites WHERE id = ?',
+        'SELECT id, nickname, meter_id FROM favorites WHERE id = ?',
         [id]
       );
       if (rows.length === 0) return res.json({ success: false, message: 'Not found' });
@@ -80,6 +81,7 @@ export default function createFavoritesRouter(database) {
       res.status(500).json({ success: false, message: 'Database error' });
     }
   });
+
 
   // Update nickname
   router.put('/:id', async (req, res) => {
