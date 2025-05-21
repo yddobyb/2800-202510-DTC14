@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Montserrat:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        .font-inter-bold {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+        }
+
+        .font-inter-medium {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .selected {
+            background-color: #2553E9 !important;
+            color: white;
+        }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Notification</title>
+</head>
+
+<body class="font-inter">
+    <header class="text-center">
+        <h1 class="text-[30px] pt-4 py-2"><b>Notifications</b></h1>
+    </header>
+
+    <emailNotification>
+        <div class="py-2">
+            <div class="flex items-center">
+                <h1 class="pl-7"><b>Email Notifications</b></h1>
+
+                <label class="inline-flex items-center cursor-pointer pl-32">
+                    <input type="checkbox" id="toggleNotification" class="sr-only peer">
+                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer light:bg-gray-700 
+                        peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white 
+                        after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 
+                        after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 
+                        peer-checked:bg-[#2553E9]">
+                    </div>
+
+                </label>
+            </div>
+
+            <div class="pl-7 pr-14 pt-3 text-[13px] text-gray-600">
+                <h2>Get automatic alerts when your parking time is about to expire</h2>
+            </div>
+        </div>
+    </emailNotification>
+
+    <!-- Remind Me -->
+    <div id="remindSection" class="hidden">
+        <div class="py-2">
+            <div class="flex items-center">
+                <h1 class="pl-7"><b>Remind me</b></h1>
+            </div>
+            <div class="pl-7 pr-14 pt-3 text-[13px] text-gray-600">
+                <h2>Select a time when you'd like to receive an email reminder before your parking expires</h2>
+            </div>
+            <div class="pl-7 pt-3 flex gap-2 flex-wrap">
+                <button class="bg-gray-100 px-4 py-2 rounded time-btn" data-time="10">10 min</button>
+                <button class="bg-gray-100 px-4 py-2 rounded time-btn" data-time="30">30 min</button>
+                <button class="bg-gray-100 px-4 py-2 rounded time-btn" data-time="45">45 min</button>
+                <button class="bg-gray-100 px-4 py-2 rounded time-btn" data-time="60">1 hr</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const toggle = document.getElementById("toggleNotification");
+        const remindSection = document.getElementById("remindSection");
+        const timeButtons = document.querySelectorAll(".time-btn");
+
+        document.addEventListener("DOMContentLoaded", loadUserPreferences);
+
+        toggle.addEventListener("change", () => {
+            if (toggle.checked) {
+                remindSection.classList.remove("hidden");
+                saveNotificationSetting(true);
+            } else {
+                remindSection.classList.add("hidden");
+                saveNotificationSetting(false);
+            }
+        });
+
+        timeButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                timeButtons.forEach(btn => btn.classList.remove("selected"));
+
+                this.classList.add("selected");
+
+                const time = this.getAttribute("data-time");
+                saveTimePreference(time);
+            });
+        });
+
+        function saveTimePreference(time) {
+            fetch('/api/preferences/notifications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ notificationTime: time })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to save preference');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Preference saved:', data);
+                })
+                .catch(error => {
+                    console.error('Error saving preference:', error);
+                });
+        }
+
+        function saveNotificationSetting(enabled) {
+            fetch('/api/preferences/notifications-enabled', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ enabled: enabled })
+            })
+                .catch(error => {
+                    console.error('Error saving notification setting:', error);
+                });
+        }
+
+        function loadUserPreferences() {
+            fetch('/api/preferences')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load preferences');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.notificationsEnabled) {
+                        toggle.checked = true;
+                        remindSection.classList.remove("hidden");
+                    }
+
+                    if (data.notificationTime) {
+                        const timeButton = document.querySelector(`.time-btn[data-time="${data.notificationTime}"]`);
+                        if (timeButton) {
+                            timeButton.classList.add("selected");
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading preferences:', error);
+                });
+        }
+    </script>
+</body>
+
+</html>
