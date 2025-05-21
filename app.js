@@ -61,12 +61,12 @@ try {
     database = null;
 }
 
-//–– EMAIL SENDING (real SMTP)
+// EMAIL SENDING
 async function sendCodeEmail(to, subject, html) {
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: +process.env.SMTP_PORT,
-        secure: false, // set true if you use 465
+        secure: false,
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
@@ -126,7 +126,7 @@ app.post('/signup', async (req, res) => {
         }
 
         const signupCode = Math.floor(100000 + Math.random() * 900000).toString();
-        const signupExpires = new Date(Date.now() + 10 * 60 * 1000); // 10m
+        const signupExpires = new Date(Date.now() + 10 * 60 * 1000);
         if (database) {
             await database.execute(
                 'UPDATE users SET verification_code = ?, verification_expires = ? WHERE user_id = ?',
@@ -141,7 +141,7 @@ app.post('/signup', async (req, res) => {
         await sendCodeEmail(
             email,
             'Verify your ParkSmart email',
-            `<p>Your verification code is <strong>${signupCode}</strong>.<br/>It expires in 10 minutes.</p>`
+            `<p>Hello, ${username}. Your verification code is <strong>${signupCode}</strong>.<br/>It expires in 10 minutes.</p>`
         );
 
         return res.redirect(
@@ -153,28 +153,67 @@ app.post('/signup', async (req, res) => {
         return res.status(500).send('Signup failed');
     }
 });
-
 app.post('/login', async (req, res) => {
     const { email, password, remember } = req.body;
     try {
-        let userFound = false, userPassword = '', userId = null;
+        let userFound = false;
+        let userPassword = '';
+        let userId = null;
+        let isVerified = true;
+
         if (database) {
             const [rows] = await database.execute(
-                'SELECT user_id, password FROM users WHERE email = ?', [email]
+                'SELECT user_id, password, email_verified FROM users WHERE email = ?',
+                [email]
             );
             if (rows.length) {
                 userFound = true;
                 userPassword = rows[0].password;
                 userId = rows[0].user_id;
+                isVerified = rows[0].email_verified === 1;
+            }
+        } else {
+            const mu = mockUsers.find(u => u.email === email);
+            if (mu) {
+                userFound = true;
+                userPassword = mu.password;
+                userId = mu.user_id;
+                isVerified = mu.email_verified;
             }
         }
+
         if (!userFound) {
-            const mu = mockUsers.find(u => u.email === email);
-            if (mu) { userFound = true; userPassword = mu.password; userId = mu.user_id; }
-        }
-        if (!userFound || !await bcrypt.compare(password, userPassword)) {
             return res.redirect('/login.html?error=invalid');
         }
+
+        if (!isVerified) {
+            const signupCode = Math.floor(100000 + Math.random() * 900000).toString();
+            const signupExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+            if (database) {
+                await database.execute(
+                    'UPDATE users SET verification_code = ?, verification_expires = ? WHERE user_id = ?',
+                    [signupCode, signupExpires, userId]
+                );
+            } else {
+                const mu = mockUsers.find(u => u.user_id === userId);
+                mu.verification_code = signupCode;
+                mu.verification_expires = signupExpires;
+            }
+
+            await sendCodeEmail(
+                email,
+                'Verify your ParkSmart email',
+                `<p>Hello, ${username}. Your verification code is <strong>${signupCode}</strong>.<br/>It expires in 10 minutes.</p>`
+            );
+
+            return res.redirect(`/verify?flow=signup&email=${encodeURIComponent(email)}`);
+        }
+
+        if (!await bcrypt.compare(password, userPassword)) {
+            return res.redirect('/login.html?error=invalid');
+        }
+
         req.session.user = { id: userId, email };
         if (remember === 'on') {
             req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;
@@ -182,13 +221,14 @@ app.post('/login', async (req, res) => {
             req.session.cookie.expires = false;
         }
         return res.redirect(`/main.html?login=success&userId=${userId}`);
+
     } catch (err) {
         console.error('Login error:', err);
         return res.status(500).send('Server error');
     }
-});
+});  
 
-//–– FORGOT PASSWORD
+// FORGOT PASSWORD
 app.get('/forgotpassword', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'forgotpassword.html'));
 });
@@ -226,7 +266,7 @@ app.post('/forgotpassword', async (req, res) => {
         await sendCodeEmail(
             email,
             'ParkSmart password reset code',
-            `<p>Your password reset code is <strong>${resetCode}</strong>.<br/>It expires in 1 hour.</p>`
+            `<p>Hello, ${username}. Your password reset code is <strong>${resetCode}</strong>.<br/>It expires in 1 hour.</p>`
         );
 
         return res.redirect(
@@ -234,6 +274,7 @@ app.post('/forgotpassword', async (req, res) => {
         );
     } catch (err) {
         console.error('Forgotpassword error:', err);
+        console.error('Login error:', err);
         return res.status(500).send('Server error');
     }
 });
