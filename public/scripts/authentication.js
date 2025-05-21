@@ -14,13 +14,24 @@ function togglePassword() {
 // login
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(location.search);
-    if (params.get('login') === 'success') {
-        document.getElementById('guest-links').style.display = 'none';
-    }
-});
 
-window.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(location.search);
+    if (params.get('login') === 'success') {
+        // store the userId from URL in sessionStorage
+        const userId = params.get('userId');
+        if (userId) {
+            sessionStorage.setItem('userId', userId);
+        }
+
+        // hide guest links if logged in
+        const guestLinks = document.getElementById('guest-links');
+        if (guestLinks) {
+            guestLinks.style.display = 'none';
+        }
+
+        // clean up the URL
+        history.replaceState(null, '', 'login.html');
+    }
+
     if (params.get('error') === 'invalid') {
         alert('Invalid email or password.');
         document.getElementById('loginForm').reset();
@@ -36,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-//forgot password
+// forgot password
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(location.search);
     if (params.get('error') === 'notfound') {
@@ -49,7 +60,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-//reset password
+// reset password
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(location.search);
     const token = params.get('token') || '';
