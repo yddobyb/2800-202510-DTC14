@@ -17,9 +17,11 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS favorites (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
+    nickname VARCHAR(50),
     meter_id VARCHAR(255),
     location_name VARCHAR(255),
-    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 

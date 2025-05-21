@@ -326,7 +326,7 @@
                                     <span class="font-semibold">${street}</span>
                                     <span>Fee: ${rate}</span>
                                     <div class="flex space-x-2 pt-1">
-                                        <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${street}', '${rate}')">Fav</button>
+                                        <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${street.replace(/'/g, "\\'")}', '${rate}')">Fav</button>
                                         <button class="px-3 py-1 bg-green-500 text-white rounded" onclick="
                                             location.href = 'paymentpage.html'
                                             + '?zone=${encodeURIComponent(street)}'
@@ -485,7 +485,7 @@
                                 <span>Type: Motorcycle Parking</span>
                                 <span>Fee: ${rate}</span>
                                 <div class="flex space-x-2 pt-1">
-                                    <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${location}', '${rate}')">Fav</button>
+                                    <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${location.replace(/'/g, "\\'")}', '${rate}')">Fav</button>
                                     <button class="px-3 py-1 bg-green-500 text-white rounded" onclick="location.href='paymentpage.html?zone=${encodeURIComponent(location)}&rate=${encodeURIComponent(rate)}'">Pay</button>
                                 </div>
                                 </div>
@@ -625,7 +625,7 @@
                                 <span>Spaces: ${spaces}</span>
                                 <span>Fee: ${rate}</span>
                                 <div class="flex space-x-2 pt-1">
-                                    <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${location}', '${rate}')">Fav</button>
+                                    <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${location.replace(/'/g, "\\'")}', '${rate}')">Fav</button>
                                     <button class="px-3 py-1 bg-green-500 text-white rounded" onclick="location.href='paymentpage.html?zone=${encodeURIComponent(location)}&rate=${encodeURIComponent(rate)}'">Pay</button>
                                 </div>
                                 </div>
@@ -652,14 +652,6 @@
         // Initialize map with regular meters
         map.on('load', () => {
             displayMeterPins();
-
-            // Handle search query from URL if present
-            const urlParams = new URLSearchParams(window.location.search);
-            const searchQuery = urlParams.get('query');
-            if (searchQuery) {
-                document.getElementById('search-input').value = searchQuery;
-                handleSearch();
-            }
 
             // Add click event listeners to the toggle buttons
             document.querySelectorAll('.toggle-btn').forEach(button => {
@@ -774,30 +766,40 @@
     </script>
 
     <script>
-        function addToFavorites(street, rate) {
-            // Get existing favorites from localStorage
-            let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        async function addToFavorites(street, rate) {
+            const userId = sessionStorage.getItem('userId');
 
-            // Check if this location is already in favorites
-            const exists = favorites.some(fav => fav.street === street);
-
-            if (exists) {
-                alert('This location is already in your favorites!');
+            if (!userId) {
+                alert('Please log in to use favorites.');
+                window.location.href = 'login.html';
                 return;
             }
 
-            // Add new favorite
-            favorites.push({
-                street: street,
-                rate: rate,
-                timestamp: new Date().toISOString()
-            });
+            try {
+                const res = await fetch('/api/favorites/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        nickname: null,
+                        meterId: street,
+                        locationName: street,
+                    })
+                });
 
-            // Save back to localStorage
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-            alert('Added to favorites!');
+                const data = await res.json();
+                if (data.success) {
+                    alert('Added to favorites!');
+                } else {
+                    alert(data.message || 'Failed to add to favorites.');
+                }
+            } catch (err) {
+                console.error('Error adding favorite:', err);
+                alert('Error saving favorite.');
+            }
         }
     </script>
+
 
     <!-- Filter panel behavior -->
     <script src="scripts/map.js"></script>

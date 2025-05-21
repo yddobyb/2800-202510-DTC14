@@ -34,7 +34,10 @@ async function displayMeterPins() {
                           <span class="font-semibold">${street}</span>
                           <span>Fee: ${rate}</span>
                           <div class="flex space-x-2 pt-1">
-                            <button class="px-3 py-1 bg-red-500 text-white rounded">Fav</button>
+                            <div class="flex space-x-2 pt-1">
+                            <button class="px-3 py-1 bg-red-500 text-white rounded"
+                            onclick="addFavorite('${location}', '${rate}')"
+                            >Favorite</button>
                             <button
                               class="px-3 py-1 bg-green-500 text-white rounded"
                               onclick="
@@ -115,7 +118,10 @@ async function displayMotorcycleParking() {
                                   <span>Type: ${spot.type || 'Motorcycle Parking'}</span>
                                   <span>Fee: ${rate}</span>
                                   <div class="flex space-x-2 pt-1">
-                                    <button class="px-3 py-1 bg-red-500 text-white rounded">Fav</button>
+                                    <div class="flex space-x-2 pt-1">
+                                    <button class="px-3 py-1 bg-red-500 text-white rounded"
+                                    onclick="addFavorite('${location}', '${rate}')"
+                                    >Favorite</button>
                                     <button
                                       class="px-3 py-1 bg-green-500 text-white rounded"
                                       onclick="
@@ -184,7 +190,9 @@ async function displayDisabilityParking() {
                                   <span>Spaces: ${spot.spaces || 1}</span>
                                   <span>Fee: ${rate}</span>
                                   <div class="flex space-x-2 pt-1">
-                                    <button class="px-3 py-1 bg-red-500 text-white rounded">Fav</button>
+                                    <button class="px-3 py-1 bg-red-500 text-white rounded"
+                                    onclick="addFavorite('${location}', '${rate}')"
+                                    >Favorite</button>
                                     <button
                                       class="px-3 py-1 bg-green-500 text-white rounded"
                                       onclick="
