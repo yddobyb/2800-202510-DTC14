@@ -61,34 +61,19 @@ try {
     database = null;
 }
 
-// Utility: send reset email via Ethereal test account
-async function sendResetEmail(toEmail, token) {
-    // create a test SMTP account from Ethereal
-    const testAccount = await nodemailer.createTestAccount();
+//–– EMAIL SENDING (real SMTP)
+async function sendCodeEmail(to, subject, html) {
     const transporter = nodemailer.createTransport({
-        host: testAccount.smtp.host,
-        port: testAccount.smtp.port,
-        secure: testAccount.smtp.secure,
+        host: process.env.SMTP_HOST,
+        port: +process.env.SMTP_PORT,
+        secure: false, // set true if you use 465
         auth: {
-            user: testAccount.user,
-            pass: testAccount.pass,
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
         },
     });
-
-    const resetUrl = `${process.env.BASE_URL || 'http://localhost:4000'}/reset_password?token=${token}`;
-    const info = await transporter.sendMail({
-        from: `"ParkSmart Test" <${testAccount.user}>`,
-        to: toEmail,
-        subject: 'Password Reset Link (Test)',
-        html: `
-      <p>Click the link below to reset your password:</p>
-      <a href="${resetUrl}">${resetUrl}</a>
-      <p>This link will expire in 1 hour.</p>
-    `,
-    });
-
-    console.log('Preview URL:', nodemailer.getTestMessageUrl(info));
-}
+    await transporter.sendMail({ from: `"ParkSmart" <${process.env.SMTP_USER}>`, to, subject, html });
+  }
 
 // ROUTES
 
@@ -99,7 +84,7 @@ app.get('/', (req, res) => {
     return res.redirect('/main.html');
 });
 
-// Sign Up
+// SIGNUP
 app.get('/signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'signup.html'));
 });
@@ -118,22 +103,57 @@ app.post('/signup', async (req, res) => {
         if (exists) return res.redirect('/signup?error=emailExists');
 
         const hash = await bcrypt.hash(password, 10);
+        let userId;
         if (database) {
             await database.execute(
-                'INSERT INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)',
+                `INSERT INTO users
+             (username, password, email, phone, email_verified)
+           VALUES (?, ?, ?, ?, FALSE)`,
                 [username, hash, email, phone]
             );
+            const [[{ user_id }]] = await database.execute(
+                'SELECT user_id FROM users WHERE email = ?', [email]
+            );
+            userId = user_id;
         } else {
-            mockUsers.push({ user_id: mockUsers.length + 1, username, email, phone, password: hash });
+            userId = mockUsers.length + 1;
+            mockUsers.push({
+                user_id: userId,
+                username, email, phone,
+                password: hash,
+                email_verified: false
+            });
         }
-        return res.redirect('/main.html?signup=success');
+
+        const signupCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const signupExpires = new Date(Date.now() + 10 * 60 * 1000); // 10m
+        if (database) {
+            await database.execute(
+                'UPDATE users SET verification_code = ?, verification_expires = ? WHERE user_id = ?',
+                [signupCode, signupExpires, userId]
+            );
+        } else {
+            const u = mockUsers.find(u => u.user_id === userId);
+            u.signup_code = signupCode;
+            u.signup_expires = signupExpires;
+        }
+
+        await sendCodeEmail(
+            email,
+            'Verify your ParkSmart email',
+            `<p>Your verification code is <strong>${signupCode}</strong>.<br/>It expires in 10 minutes.</p>`
+        );
+
+        return res.redirect(
+            `/verify?flow=signup&email=${encodeURIComponent(email)}`
+        );
+
     } catch (err) {
-        console.error(err);
+        console.error('Signup error:', err);
         return res.status(500).send('Signup failed');
     }
 });
 
-// Log In
 app.post('/login', async (req, res) => {
     const { email, password, remember } = req.body;
     try {
@@ -142,7 +162,7 @@ app.post('/login', async (req, res) => {
             const [rows] = await database.execute(
                 'SELECT user_id, password FROM users WHERE email = ?', [email]
             );
-            if (rows.length > 0) {
+            if (rows.length) {
                 userFound = true;
                 userPassword = rows[0].password;
                 userId = rows[0].user_id;
@@ -152,11 +172,9 @@ app.post('/login', async (req, res) => {
             const mu = mockUsers.find(u => u.email === email);
             if (mu) { userFound = true; userPassword = mu.password; userId = mu.user_id; }
         }
-        if (!userFound) return res.redirect('/login.html?error=invalid');
-        if (!await bcrypt.compare(password, userPassword)) {
+        if (!userFound || !await bcrypt.compare(password, userPassword)) {
             return res.redirect('/login.html?error=invalid');
         }
-
         req.session.user = { id: userId, email };
         if (remember === 'on') {
             req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;
@@ -165,12 +183,12 @@ app.post('/login', async (req, res) => {
         }
         return res.redirect(`/main.html?login=success&userId=${userId}`);
     } catch (err) {
-        console.error(err);
+        console.error('Login error:', err);
         return res.status(500).send('Server error');
     }
 });
 
-// Forgot Password (form)
+//–– FORGOT PASSWORD
 app.get('/forgotpassword', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'forgotpassword.html'));
 });
@@ -180,10 +198,10 @@ app.post('/forgotpassword', async (req, res) => {
         let userRow;
         if (database) {
             const [rows] = await database.execute(
-                'SELECT user_id FROM users WHERE email = ? AND username = ? AND phone = ?',
+                'SELECT user_id FROM users WHERE email=? AND username=? AND phone=?',
                 [email, username, phone]
             );
-            if (rows.length === 0) return res.redirect('/forgotpassword?error=notfound');
+            if (!rows.length) return res.redirect('/forgotpassword?error=notfound');
             userRow = rows[0];
         } else {
             userRow = mockUsers.find(u =>
@@ -192,71 +210,122 @@ app.post('/forgotpassword', async (req, res) => {
             if (!userRow) return res.redirect('/forgotpassword?error=notfound');
         }
 
-        const token = crypto.randomBytes(32).toString('hex');
-        const expires = new Date(Date.now() + 3600_000);
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1h
         if (database) {
             await database.execute(
-                'UPDATE users SET reset_token = ?, reset_expires = ? WHERE user_id = ?',
-                [token, expires, userRow.user_id]
+                'UPDATE users SET verification_code=?, verification_expires=? WHERE user_id=?',
+                [resetCode, resetExpires, userRow.user_id]
             );
         } else {
             const mu = mockUsers.find(u => u.user_id === userRow.user_id);
-            mu.reset_token = token;
-            mu.reset_expires = expires;
+            mu.verification_code = resetCode;
+            mu.verification_expires = resetExpires;
         }
 
-        await sendResetEmail(email, token);
-        return res.redirect('/forgotpassword?sent=true');
+        await sendCodeEmail(
+            email,
+            'ParkSmart password reset code',
+            `<p>Your password reset code is <strong>${resetCode}</strong>.<br/>It expires in 1 hour.</p>`
+        );
+
+        return res.redirect(
+            `/verify?flow=forgotpassword&email=${encodeURIComponent(email)}`
+        );
     } catch (err) {
         console.error('Forgotpassword error:', err);
         return res.status(500).send('Server error');
     }
 });
 
-// Reset Password (token)
-app.get('/reset_password', async (req, res) => {
-    const { token } = req.query;
-    if (!token) return res.redirect('/login');
+// Verify code
+app.get('/verify', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'verify.html'));
+});
+app.post('/verify', async (req, res) => {
+    const { flow, email, code } = req.body;
     try {
-        const [rows] = await database.execute(
-            'SELECT user_id, reset_expires FROM users WHERE reset_token = ?', [token]
-        );
-        if (rows.length === 0) return res.redirect('/reset_password?error=invalid');
-        const { reset_expires } = rows[0];
-        if (new Date(reset_expires) < new Date()) {
-            return res.redirect('/reset_password?error=expired');
+        const isSignup = flow === 'signup';
+        const codeCol ='verification_code';
+        const expCol = 'verification_expires';
+        let rows;
+
+        if (database) {
+            [rows] = await database.execute(
+                `SELECT user_id, ${expCol} 
+           FROM users 
+           WHERE email=? AND ${codeCol}=?`,
+                [email, code]
+            );
+        } else {
+            const mu = mockUsers.find(u => u.email === email && u[codeCol] === code);
+            rows = mu ? [{ user_id: mu.user_id, [expCol]: mu[expCol] }] : [];
         }
-        return res.sendFile(path.join(__dirname, 'public', 'reset_password.html'));
+
+        if (!rows.length) {
+            return res.redirect(`/verify?flow=${flow}&email=${encodeURIComponent(email)}&error=invalid`);
+        }
+        const { user_id, [expCol]: expires } = rows[0];
+        if (new Date(expires) < new Date()) {
+            return res.redirect(`/verify?flow=${flow}&email=${encodeURIComponent(email)}&error=expired`);
+        }
+
+        if (isSignup) {
+            if (database) {
+                await database.execute(
+                    'UPDATE users SET email_verified=TRUE, verification_code=NULL, verification_expires=NULL WHERE user_id=?',
+                    [user_id]
+                );
+            } else {
+                const mu = mockUsers.find(u => u.user_id === user_id);
+                mu.email_verified = true;
+            }
+            return res.redirect('/login.html?verified=success');
+        }
+
+        if (database) {
+            await database.execute(
+                'UPDATE users SET verification_code=NULL, verification_expires=NULL WHERE user_id=?',
+                [user_id]
+            );
+        } else {
+            const mu = mockUsers.find(u => u.user_id === user_id);
+            delete mu.reset_code;
+            delete mu.reset_expires;
+        }
+        return res.redirect(`/reset_password?userId=${user_id}`);
     } catch (err) {
-        console.error(err);
+        console.error('Verify error:', err);
         return res.status(500).send('Server error');
     }
 });
+// Reset Password (token)
+app.get('/reset_password', (req, res) => {
+    const { userId } = req.query;
+    if (!userId) return res.redirect('/login.html');
+    return res.sendFile(path.join(__dirname, 'public', 'reset_password.html'));
+});
 app.post('/reset_password', async (req, res) => {
-    const { token, password, confirm } = req.body;
-    if (!token || password !== confirm) {
-        return res.redirect(`/reset_password?token=${token}&error=validation`);
+    const { userId, password, confirm } = req.body;
+    if (!userId || password !== confirm) {
+        return res.redirect(`/reset_password?userId=${userId}&error=validation`);
     }
     try {
-        const [rows] = await database.execute(
-            'SELECT user_id, reset_expires FROM users WHERE reset_token = ?', [token]
-        );
-        if (rows.length === 0) return res.redirect('/reset_password?error=invalid');
-        const { user_id, reset_expires } = rows[0];
-        if (new Date(reset_expires) < new Date()) {
-            return res.redirect('/reset_password?error=expired');
-        }
-
         const newHash = await bcrypt.hash(password, 10);
-        await database.execute(
-            `UPDATE users
-         SET password = ?, reset_token = NULL, reset_expires = NULL
-       WHERE user_id = ?`,
-            [newHash, user_id]
-        );
+        if (database) {
+            await database.execute(
+                `UPDATE users
+             SET password=?, verification_code=NULL, verification_expires=NULL
+           WHERE user_id=?`,
+                [newHash, userId]
+            );
+        } else {
+            const mu = mockUsers.find(u => u.user_id === +userId);
+            mu.password = newHash;
+        }
         return res.redirect('/login?reset=success');
     } catch (err) {
-        console.error(err);
+        console.error('Reset error:', err);
         return res.status(500).send('Server error');
     }
 });
