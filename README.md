@@ -1,9 +1,9 @@
 This is my readme file.
 
 to run the website.
+
 1. download the files
 2. open index.html in your browser
-
 
 # ParkSmart Analyzer
 
@@ -13,10 +13,10 @@ to run the website.
 
 ## Key Features
 
-- **Enforcement Heat-map:** Hourly ticket density visualized by block  
-- **Disability & Motorcycle Filters:** Show only legally available stalls for each permit type  
-- **Push Notifications:** 15-minute alerts before street-cleaning or meter expiry  
-- **One-Tap Payment:** Deep-link into PayByPhone with location pre-filled  
+- **Enforcement Heat-map:** Hourly ticket density visualized by block
+- **Disability & Motorcycle Filters:** Show only legally available stalls for each permit type
+- **Push Notifications:** 15-minute alerts before street-cleaning or meter expiry
+- **One-Tap Payment:** Deep-link into PayByPhone with location pre-filled
 
 ---
 
@@ -24,7 +24,7 @@ to run the website.
 
 - **ETL & Data:** Python
 - **Database:** MySQL
-- **API Server:** Node.js (Express) + TypeScript  
+- **API Server:** Node.js (Express) + TypeScript
 - **Frontend:** HTML, CSS, JavaScript, Tailwind CSS
 
 ---
@@ -33,19 +33,19 @@ to run the website.
 
 ### Prerequisites
 
-- Node.js (v16+)  
-- Python (v3.8+)  
-- MySQL (with Spatial support)  
+- Node.js (v16+)
+- Python (v3.8+)
+- MySQL (with Spatial support)
 
 ### Installation
 
-1. **Clone the repo**  
+1. **Clone the repo**
    ```bash
    git clone https://github.com/yddobyb/ParkSmartAnalyzer.git
    cd ParkSmartAnalyzer
-
+   ```
 
 ## Project Structure
 
-- `parksmart-analyzer/` 
-  - `README.md`          # Project overview and setup  
+- `parksmart-analyzer/`
+  - `README.md` # Project overview and setup

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Verification | ParkSmart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center">
+        <!-- 상단 아이콘 -->
+        <div class="mb-6">
+            <!-- 예시 SVG, 필요에 따라 교체 -->
+            <svg class="mx-auto w-16 h-16 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m0 8V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2z" />
+            </svg>
+        </div>
+
+        <h1 class="text-2xl font-bold mb-2">Email Verification</h1>
+        <p class="text-gray-600 mb-6">Enter the <strong class="text-gray-800">6-digit</strong> code we sent to your
+            email.</p>
+
+        <form id="verifyForm" action="/verify" method="POST" class="space-y-6">
+            <!-- flow, email hidden -->
+            <input type="hidden" name="flow" id="flowInput" />
+            <input type="hidden" name="email" id="emailInput" />
+
+            <!-- 코드 입력 -->
+            <div class="flex justify-center space-x-2">
+                <input type="text" maxlength="1" pattern="\d" required
+                    class="w-12 h-12 border border-gray-300 rounded-lg text-center text-xl font-mono focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    id="d1" />
+                <input type="text" maxlength="1" pattern="\d" required
+                    class="w-12 h-12 border border-gray-300 rounded-lg text-center text-xl font-mono focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    id="d2" />
+                <input type="text" maxlength="1" pattern="\d" required
+                    class="w-12 h-12 border border-gray-300 rounded-lg text-center text-xl font-mono focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    id="d3" />
+                <input type="text" maxlength="1" pattern="\d" required
+                    class="w-12 h-12 border border-gray-300 rounded-lg text-center text-xl font-mono focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    id="d4" />
+                <input type="text" maxlength="1" pattern="\d" required
+                    class="w-12 h-12 border border-gray-300 rounded-lg text-center text-xl font-mono focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    id="d5" />
+                <input type="text" maxlength="1" pattern="\d" required
+                    class="w-12 h-12 border border-gray-300 rounded-lg text-center text-xl font-mono focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    id="d6" />
+            </div>
+
+            <!-- concatenated code -->
+            <input type="hidden" name="code" id="codeInput" />
+
+            <button type="submit"
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition-colors">
+                Verify
+            </button>
+        </form>
+
+        <p class="mt-4 text-sm text-gray-600">
+            Code is valid for 10 minutes.
+            <a href="#" id="resendLink" class="text-blue-500 hover:underline">Resend Code</a>
+        </p>
+    </div>
+
+    <script>
+        // parse URL params
+        const params = new URLSearchParams(location.search);
+        const flow = params.get('flow') || '';
+        const email = params.get('email') || '';
+        const error = params.get('error');
+
+        // populate hidden fields
+        document.getElementById('flowInput').value = flow;
+        document.getElementById('emailInput').value = email;
+
+        // show error if any
+        if (error === 'invalid') {
+            alert('Invalid code. Please try again.');
+        } else if (error === 'expired') {
+            alert('Code expired. Click “Resend Code” to get a new one.');
+        }
+
+        // auto-focus next input
+        const inputs = document.querySelectorAll('.space-x-2 input');
+        inputs.forEach((el, i) => {
+            el.addEventListener('input', () => {
+                if (el.value.length === 1 && i < inputs.length - 1) {
+                    inputs[i + 1].focus();
+                }
+            });
+        });
+
+        // before submit: concatenate digits into “code”
+        document.getElementById('verifyForm').addEventListener('submit', e => {
+            const code = Array.from(inputs).map(i => i.value).join('');
+            document.getElementById('codeInput').value = code;
+        });
+
+        // resend link
+        document.getElementById('resendLink').href =
+            `/resend-code?flow=${encodeURIComponent(flow)}&email=${encodeURIComponent(email)}`;
+    </script>
+</body>
+
+</html>
