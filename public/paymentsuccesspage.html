@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ParkSmart – Payment Success</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-blue-600 min-h-screen flex items-center justify-center p-10">
+
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden pt-[100px]">
+        <!-- Check Icon -->
+        <div class="flex justify-center -mt-12">
+            <div class="bg-blue-100 rounded-full p-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="px-6 pt-2 pb-4 text-center">
+            <h1 class="text-2xl font-semibold text-gray-900 mb-2">Success</h1>
+            <p class="mt-1 text-gray-500 text-[14px]">You've successfully paid your parking fee.</p>
+        </div>
+
+        <!-- Details -->
+        <div class="px-6 pb-6 space-y-4 pt-7">
+            <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                <div class="flex justify-between text-gray-700">
+                    <span>Payment ID</span>
+                    <span id="success-payment-id">--</span>
+                </div>
+                <div class="flex justify-between text-gray-700">
+                    <span>Location</span>
+                    <span id="success-zone">--</span>
+                </div>
+                <div class="flex justify-between text-gray-700">
+                    <span>Start Time</span>
+                    <span id="success-start">--</span>
+                </div>
+                <div class="flex justify-between text-gray-700">
+                    <span>End Time</span>
+                    <span id="success-end">--</span>
+                </div>
+                <div class="flex justify-between text-gray-700">
+                    <span>Duration</span>
+                    <span id="success-duration">--</span>
+                </div>
+                <div class="flex justify-between text-gray-900 font-semibold">
+                    <span>Total Amount</span>
+                    <span id="success-total">--</span>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="space-y-3">
+                <button id="view-status"
+                    class="w-full border border-blue-600 text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+                    View Status
+                </button>
+                <button id="done-btn"
+                    class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script to populate details and handle Done -->
+    <script>
+        // helper to format a Date as "h:mm AM/PM"
+        function fmt(dt) {
+            let h = dt.getHours();
+            const m = String(dt.getMinutes()).padStart(2, '0');
+            const am = h < 12;
+            h = h % 12 || 12;
+            return `${h}:${m} ${am ? 'AM' : 'PM'}`;
+        }
+
+        // parse query params
+        const params = new URLSearchParams(window.location.search);
+        const zone = params.get('zone') || '';
+        const hours = parseInt(params.get('hours'), 10) || 0;
+        const minutes = parseInt(params.get('minutes'), 10) || 0;
+        const rateStr = params.get('rate') || '$0.00';
+
+        // compute times
+        const start = new Date();
+        const end = new Date(start.getTime() + (hours * 60 + minutes) * 60000);
+        const total = (parseFloat(rateStr.replace(/[^0-9.]/g, '')) * (hours + minutes / 60)).toFixed(2);
+
+        // set fields
+        const paymentId = params.get('payment_id') || sessionStorage.getItem('last_payment_id') || 'N/A';
+        
+        // Store parking info in localStorage for the status page
+        localStorage.setItem('parkingEndTime', end.getTime());
+        localStorage.setItem('currentPaymentId', paymentId);
+        localStorage.setItem('parkingStopped', 'false'); // Mark parking as active
+        localStorage.setItem('parkingStartTime', start.getTime());
+        localStorage.setItem('parkingLocation', zone);
+        localStorage.setItem('parkingRate', rateStr);
+        localStorage.setItem('parkingHours', hours);
+        localStorage.setItem('parkingMinutes', minutes);
+        localStorage.setItem('parkingTotal', total);
+
+        document.getElementById('success-payment-id').textContent = paymentId;
+        document.getElementById('success-zone').textContent = zone;
+        document.getElementById('success-start').textContent = fmt(start);
+        document.getElementById('success-end').textContent = fmt(end);
+        document.getElementById('success-duration').textContent =
+            `${hours} hour${hours !== 1 ? 's' : ''}` + (minutes ? ` ${minutes} min` : '');
+        document.getElementById('success-total').textContent = `$${total}`;
+
+        // button handlers
+        document.getElementById('view-status').addEventListener('click', () => {
+            window.location.href = 'status.html';
+        });
+        document.getElementById('done-btn').addEventListener('click', () => {
+            window.location.href = 'map.html';
+        });
+    </script>
+</body>
+
+</html>
