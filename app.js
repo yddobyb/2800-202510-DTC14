@@ -228,6 +228,57 @@ app.post('/login', async (req, res) => {
     }
 });  
 
+// FORGOT PASSWORD
+app.get('/forgotpassword', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'forgotpassword.html'));
+});
+app.post('/forgotpassword', async (req, res) => {
+    const { email, username, phone } = req.body;
+    try {
+        let userRow;
+        if (database) {
+            const [rows] = await database.execute(
+                'SELECT user_id FROM users WHERE email=? AND username=? AND phone=?',
+                [email, username, phone]
+            );
+            if (!rows.length) return res.redirect('/forgotpassword?error=notfound');
+            userRow = rows[0];
+        } else {
+            userRow = mockUsers.find(u =>
+                u.email === email && u.username === username && u.phone === phone
+            );
+            if (!userRow) return res.redirect('/forgotpassword?error=notfound');
+        }
+
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1h
+        if (database) {
+            await database.execute(
+                'UPDATE users SET verification_code=?, verification_expires=? WHERE user_id=?',
+                [resetCode, resetExpires, userRow.user_id]
+            );
+        } else {
+            const mu = mockUsers.find(u => u.user_id === userRow.user_id);
+            mu.verification_code = resetCode;
+            mu.verification_expires = resetExpires;
+        }
+
+        await sendCodeEmail(
+            email,
+            'ParkSmart password reset code',
+            `<p>Your password reset code is <strong>${resetCode}</strong>.<br/>It expires in 1 hour.</p>`
+        );
+
+        return res.redirect(
+            `/verify?flow=forgotpassword&email=${encodeURIComponent(email)}`
+        );
+    } catch (err) {
+        console.error('Forgotpassword error:', err);
+        console.error('Login error:', err);
+        return res.status(500).send('Server error');
+    }
+});
+
 // Verify code
 app.get('/verify', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'verify.html'));
