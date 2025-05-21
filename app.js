@@ -61,12 +61,12 @@ try {
     database = null;
 }
 
-//–– EMAIL SENDING (real SMTP)
+// EMAIL SENDING
 async function sendCodeEmail(to, subject, html) {
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: +process.env.SMTP_PORT,
-        secure: false, // set true if you use 465
+        secure: false,
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
@@ -141,7 +141,7 @@ app.post('/signup', async (req, res) => {
         await sendCodeEmail(
             email,
             'Verify your ParkSmart email',
-            `<p>Your verification code is <strong>${signupCode}</strong>.<br/>It expires in 10 minutes.</p>`
+            `<p>Hello, ${username}. Your verification code is <strong>${signupCode}</strong>.<br/>It expires in 10 minutes.</p>`
         );
 
         return res.redirect(
@@ -204,7 +204,7 @@ app.post('/login', async (req, res) => {
             await sendCodeEmail(
                 email,
                 'Verify your ParkSmart email',
-                `<p>Your verification code is <strong>${signupCode}</strong>.<br/>It expires in 10 minutes.</p>`
+                `<p>Hello, ${username}. Your verification code is <strong>${signupCode}</strong>.<br/>It expires in 10 minutes.</p>`
             );
 
             return res.redirect(`/verify?flow=signup&email=${encodeURIComponent(email)}`);
@@ -266,7 +266,7 @@ app.post('/forgotpassword', async (req, res) => {
         await sendCodeEmail(
             email,
             'ParkSmart password reset code',
-            `<p>Your password reset code is <strong>${resetCode}</strong>.<br/>It expires in 1 hour.</p>`
+            `<p>Hello, ${username}. Your password reset code is <strong>${resetCode}</strong>.<br/>It expires in 1 hour.</p>`
         );
 
         return res.redirect(
