@@ -29,10 +29,19 @@ export default function createFavoritesRouter(database) {
 
     try {
       const [rows] = await database.execute(
-        `SELECT id, nickname, meter_id, location_name, added_at
-         FROM favorites WHERE user_id = ?`,
+        `SELECT 
+          f.id,
+          f.nickname,
+          f.meter_id,
+          f.added_at,
+          pm.rate,
+          pm.meterid AS location_name
+        FROM favorites f
+        JOIN parking_meters pm ON f.meter_id = pm.meterid
+        WHERE f.user_id = ?`,
         [userId]
       );
+
       res.json({ success: true, favorites: rows });
     } catch (err) {
       console.error(err);
