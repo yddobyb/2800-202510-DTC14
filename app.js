@@ -160,6 +160,7 @@ app.post('/login', async (req, res) => {
         let userPassword = '';
         let userId = null;
         let isVerified = true;
+        let user_name = null;
 
         if (database) {
             const [rows] = await database.execute(
@@ -171,6 +172,7 @@ app.post('/login', async (req, res) => {
                 userPassword = rows[0].password;
                 userId = rows[0].user_id;
                 isVerified = rows[0].email_verified === 1;
+                user_name = rows[0].username;
             }
         } else {
             const mu = mockUsers.find(u => u.email === email);
@@ -204,7 +206,7 @@ app.post('/login', async (req, res) => {
             await sendCodeEmail(
                 email,
                 'Verify your ParkSmart email',
-                `<p>Hello, ${username}. Your verification code is <strong>${signupCode}</strong>.<br/>It expires in 10 minutes.</p>`
+                `<p>Hello, ${user_name}. Your verification code is <strong>${signupCode}</strong>.<br/>It expires in 10 minutes.</p>`
             );
 
             return res.redirect(`/verify?flow=signup&email=${encodeURIComponent(email)}`);
