@@ -213,7 +213,7 @@
         </div>
     </div>
 
-    
+
     <!-- Mapbox GL JS -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script>
@@ -236,7 +236,7 @@
             if (!res.ok) throw new Error('Failed to fetch /api/meters');
             return (await res.json()).meters;
         }
-        
+
         // Display regular parking meters on the map
         async function displayMeterPins() {
             try {
@@ -339,7 +339,7 @@
                                     <span class="font-semibold">${street}</span>
                                     <span>Fee: ${rate}</span>
                                     <div class="flex space-x-2 pt-1">
-                                        <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${street}', '${rate}')">Fav</button>
+                                        <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${street.replace(/'/g, "\\'")}', '${rate}')">Fav</button>
                                         <button class="px-3 py-1 bg-green-500 text-white rounded" onclick="
                                             location.href = 'paymentpage.html'
                                             + '?zone=${encodeURIComponent(street)}'
@@ -372,7 +372,7 @@
             }
         }
 
-        
+
         // Clear all markers from the map
         function clearAllMarkers() {
             if (currentMarkers.length > 0) {
@@ -394,7 +394,7 @@
             });
         }
 
-        
+
         // Fetch and display motorcycle parking data
         async function displayMotorcycleParking() {
             try {
@@ -498,7 +498,7 @@
                                 <span>Type: Motorcycle Parking</span>
                                 <span>Fee: ${rate}</span>
                                 <div class="flex space-x-2 pt-1">
-                                    <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${location}', '${rate}')">Fav</button>
+                                    <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${location.replace(/'/g, "\\'")}', '${rate}')">Fav</button>
                                     <button class="px-3 py-1 bg-green-500 text-white rounded" onclick="location.href='paymentpage.html?zone=${encodeURIComponent(location)}&rate=${encodeURIComponent(rate)}'">Pay</button>
                                 </div>
                                 </div>
@@ -521,7 +521,7 @@
                 console.error('Motorcycle parking error:', err);
             }
         }
-        
+
         // Fetch and display disability parking data
         async function displayDisabilityParking() {
             try {
@@ -638,7 +638,7 @@
                                 <span>Spaces: ${spaces}</span>
                                 <span>Fee: ${rate}</span>
                                 <div class="flex space-x-2 pt-1">
-                                    <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${location}', '${rate}')">Fav</button>
+                                    <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="addToFavorites('${location.replace(/'/g, "\\'")}', '${rate}')">Fav</button>
                                     <button class="px-3 py-1 bg-green-500 text-white rounded" onclick="location.href='paymentpage.html?zone=${encodeURIComponent(location)}&rate=${encodeURIComponent(rate)}'">Pay</button>
                                 </div>
                                 </div>
@@ -661,11 +661,11 @@
                 console.error('Disability parking error:', err);
             }
         }
-        
+
         // Initialize map with regular meters
         map.on('load', () => {
             displayMeterPins();
-            
+
             // Add click event listeners to the toggle buttons
             document.querySelectorAll('.toggle-btn').forEach(button => {
                 button.addEventListener('click', function () {
@@ -772,43 +772,47 @@
         $input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
 
         // When map page loads, clear the parkingStopped flag
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             localStorage.removeItem('parkingStopped');
         });
 
     </script>
 
     <script>
-        function addToFavorites(street, rate) {
-            const userId = localStorage.getItem('userId')
+        async function addToFavorites(street, rate) {
+            const userId = sessionStorage.getItem('userId');
+
             if (!userId) {
-                alert('You must be logged in to favorite spots.');
+                alert('Please log in to use favorites.');
+                window.location.href = 'login.html';
                 return;
             }
 
-            fetch('/api/favorites/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                userId,
-                zone: street,
-                rate: rate
-                })
-            })
-                .then(res => res.json())
-                .then(data => {
+            try {
+                const res = await fetch('/api/favorites/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        nickname: null,
+                        meterId: street,
+                        locationName: street,
+                    })
+                });
+
+                const data = await res.json();
                 if (data.success) {
                     alert('Added to favorites!');
                 } else {
-                    alert('Failed to add to favorites.');
+                    alert(data.message || 'Failed to add to favorites.');
                 }
-                })
-                .catch(err => {
+            } catch (err) {
                 console.error('Error adding favorite:', err);
-                alert('Something went wrong.');
-                });
+                alert('Error saving favorite.');
             }
+        }
     </script>
+
 
     <!-- Filter panel behavior -->
     <script src="scripts/map.js"></script>
