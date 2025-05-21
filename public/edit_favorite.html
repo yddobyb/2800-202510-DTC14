@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Edit Favorites</title>
+</head>
+
+<body class="bg-white flex items-center justify-center min-h-screen">
+    <button onclick="history.back()" class="text-blue-600 font-semibold mb-4 absolute top-6 left-6">&larr; Go
+        Back</button>
+
+    <div class="w-[440px] px-6 text-center">
+        <h1 class="text-xl font-bold mb-4 mt-20">Edit Nickname</h1>
+
+        <div class="space-y-4">
+            <label for="nickname" class="block font-medium text-left">Enter a nickname for this spot:</label>
+            <input type="text" id="nickname" class="w-full p-2 border rounded" placeholder="e.g., Grandma's house">
+
+            <button onclick="saveNickname()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded w-full">
+                Save Nickname
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div id="navigation"
+        class="absolute bottom-0 left-0 w-full h-[113px] bg-white z-10 rounded-t-[40px] p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.4)]">
+        <div class="flex justify-between items-center h-full px-4">
+            <a href="./map.html" class="nav-item flex flex-col items-center" data-type="Map">
+                <img src="./asset/grayMap.png" class="w-[30px]" />
+                <span class="text-[16px] text-[#6E6E6E] mt-2">Map</span>
+            </a>
+            <a href="./favorite.html" class="nav-item flex flex-col items-center" data-type="Favorite">
+                <img src="./asset/grayFavorite.png" class="w-[30px]" />
+                <span class="text-[16px] text-[#6E6E6E] mt-2">Favorite</span>
+            </a>
+            <a href="./status.html" class="nav-item flex flex-col items-center" data-type="Status">
+                <img src="./asset/grayStatus.png" class="w-[26px]" />
+                <span class="text-[16px] text-[#6E6E6E] mt-2">Status</span>
+            </a>
+            <a href="./setting.html" class="nav-item flex flex-col items-center" data-type="Setting">
+                <img src="./asset/graySetting.png" class="w-[30px]" />
+                <span class="text-[16px] text-[#6E6E6E] mt-2">Setting</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const favoriteId = new URLSearchParams(window.location.search).get('id');
+
+        // Prefill existing nickname
+        async function loadFavorite() {
+            try {
+                const res = await fetch(`/api/favorites/id/${favoriteId}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('nickname').value = data.favorite.nickname || '';
+                } else {
+                    alert('Favorite not found.');
+                }
+            } catch (err) {
+                console.error('Failed to fetch favorite:', err);
+                alert('Server error.');
+            }
+        }
+
+        async function saveNickname() {
+            const nickname = document.getElementById('nickname').value.trim();
+
+            try {
+                const res = await fetch(`/api/favorites/${favoriteId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nickname })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    window.location.href = 'favorite.html';
+                } else {
+                    alert('Failed to update nickname.');
+                }
+            } catch (err) {
+                console.error('Error saving nickname:', err);
+                alert('Server error while saving nickname.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadFavorite);
+    </script>
+</body>
+
+</html>
