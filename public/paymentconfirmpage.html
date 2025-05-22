@@ -101,6 +101,7 @@
         const rateNum = parseFloat(rate.replace(/[^0-9.]/g, '')) || 0;
         const total = (rateNum * (hours + minutes / 60)).toFixed(2);
 
+      
         function fmt(dt) {
             let h = dt.getHours(), m = String(dt.getMinutes()).padStart(2, '0');
             const am = h < 12;
@@ -177,4 +178,5 @@
 
 </body>
 <script src="./scripts/payment.js"></script>
+
 </html>
