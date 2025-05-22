@@ -78,6 +78,7 @@
             <div>
               <p class="font-semibold">${fav.nickname || fav.location_name}</p>
               <p class="text-sm text-gray-600">Location: ${fav.location_name}</p>
+              <p class="text-sm text-gray-600">Rate: ${fav.rate}</p>
             </div>
             <div class="flex space-x-2">
               <button onclick="location.href='paymentpage.html?zone=${encodeURIComponent(fav.location_name)}'" 
