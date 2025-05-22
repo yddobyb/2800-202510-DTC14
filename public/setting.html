@@ -32,8 +32,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h2 class="text-lg font-semibold">John Doe</h2>
-                    <p class="text-[#696970] text-sm">Premium Member</p>
+                    <h2 id="user-name" class="text-lg font-semibold">Loading...</h2>
                 </div>
             </div>
 
@@ -41,7 +40,8 @@
             <div class="bg-[#EDEDED] rounded-2xl overflow-hidden">
                 <!-- Menu Items -->
                 <div class="divide-y divide-[#A6A6A6]">
-                    <a href="notification.html" class="flex items-center justify-between p-5 hover:bg-[#2A2B2F] transition-colors">
+                    <a href="notification.html"
+                        class="flex items-center justify-between p-5 hover:bg-[#2A2B2F] transition-colors">
                         <span class="font-medium">Notifications</span>
                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -113,6 +113,22 @@
             sessionStorage.clear();
             window.location.href = 'login.html';
         }
+
+        async function populateUsername() {
+            try {
+                const res = await fetch('/api/session-user');
+                if (!res.ok) throw new Error('User not logged in');
+                const data = await res.json();
+                console.log(data);
+                console.log(data.username);
+                document.getElementById('user-name').textContent = data.username;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('user-name').textContent = 'Guest';
+            }
+        }
+        populateUsername();
+
     </script>
 
 </body>

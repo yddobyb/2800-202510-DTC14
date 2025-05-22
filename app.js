@@ -75,7 +75,7 @@ async function sendCodeEmail(to, subject, html) {
         },
     });
     await transporter.sendMail({ from: `"ParkSmart" <${process.env.SMTP_USER}>`, to, subject, html });
-  }
+}
 
 // ROUTES
 
@@ -96,8 +96,10 @@ app.post('/signup', async (req, res) => {
         let exists = false;
         if (database) {
             const [rows] = await database.execute(
-                'SELECT user_id FROM users WHERE email = ?', [email]
+                'SELECT user_id, username, password, email_verified FROM users WHERE email = ?',
+                [email]
             );
+
             exists = rows.length > 0;
         } else {
             exists = mockUsers.some(u => u.email === email);
@@ -166,7 +168,7 @@ app.post('/login', async (req, res) => {
 
         if (database) {
             const [rows] = await database.execute(
-                'SELECT user_id, password, email_verified FROM users WHERE email = ?',
+                'SELECT user_id, username, password, email_verified FROM users WHERE email = ?',
                 [email]
             );
             if (rows.length) {
@@ -183,6 +185,7 @@ app.post('/login', async (req, res) => {
                 userPassword = mu.password;
                 userId = mu.user_id;
                 isVerified = mu.email_verified;
+                user_name = mu.username;
             }
         }
 
@@ -218,7 +221,8 @@ app.post('/login', async (req, res) => {
             return res.redirect('/login.html?error=invalid');
         }
 
-        req.session.user = { id: userId, email };
+        req.session.user = { id: userId, email, username: user_name };
+
         if (remember === 'on') {
             req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;
         } else {
@@ -230,7 +234,14 @@ app.post('/login', async (req, res) => {
         console.error('Login error:', err);
         return res.status(500).send('Server error');
     }
-});  
+});
+
+app.get('/api/session-user', (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    res.json({ username: req.session.user.username });
+});
 
 // FORGOT PASSWORD
 app.get('/forgotpassword', (req, res) => {
@@ -291,7 +302,7 @@ app.post('/verify', async (req, res) => {
     const { flow, email, code } = req.body;
     try {
         const isSignup = flow === 'signup';
-        const codeCol ='verification_code';
+        const codeCol = 'verification_code';
         const expCol = 'verification_expires';
         let rows;
 
@@ -489,7 +500,17 @@ app.use('/email', createEmailRouter(database));
 app.use(express.static(path.join(__dirname, 'public'), {
     extensions: ['html']
 }));
-app.use((req, res) => res.status(404).send('Not found'));
+
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(err.status || 500)
+        .sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
 
 // Start server
 const PORT = process.env.PORT || 4000;
