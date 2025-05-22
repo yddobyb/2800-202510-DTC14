@@ -19,7 +19,7 @@
     <div class="max-w-md w-full">
         <div class="bg-white shadow-sm">
             <div class="bg-[#2553E9] px-4 py-4 relative flex items-center justify-center">
-                <button onclick="window.location.href='public/map.html';"
+                <button onclick="window.location.href='/map.html';"
                     class="absolute left-4 text-white text-2xl font-semibold">
                     ←
                 </button>
@@ -101,7 +101,7 @@
         const rateNum = parseFloat(rate.replace(/[^0-9.]/g, '')) || 0;
         const total = (rateNum * (hours + minutes / 60)).toFixed(2);
 
-      
+
         function fmt(dt) {
             let h = dt.getHours(), m = String(dt.getMinutes()).padStart(2, '0');
             const am = h < 12;
@@ -134,10 +134,10 @@
             try {
                 // Get the vehicle number from the page
                 const vehicleNumber = document.querySelector('li:nth-child(2) span:last-child').textContent.split(' ')[0];
-                
+
                 // Use null for user_id to avoid foreign key constraint issues
-                const userId = null; 
-                
+                const userId = null;
+
                 // Send payment data to the server
                 const response = await fetch('/api/payment/save', {
                     method: 'POST',
@@ -153,13 +153,13 @@
                         minutes: minutes
                     })
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     // Store payment ID for reference
                     sessionStorage.setItem('last_payment_id', result.payment_id);
-                    
+
                     // Redirect to success page
                     const qs = new URLSearchParams({ zone, rate, hours, minutes, payment_id: result.payment_id }).toString();
                     location.href = 'paymentsuccesspage.html?' + qs;
@@ -178,4 +178,5 @@
 
 </body>
 <script src="./scripts/payment.js"></script>
+
 </html>
