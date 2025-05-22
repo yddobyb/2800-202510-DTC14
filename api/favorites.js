@@ -5,28 +5,17 @@ export default function createFavoritesRouter(database) {
 
   // Add to favorites
   router.post('/add', async (req, res) => {
-<<<<<<< HEAD
-    const { userId, nickname, meterId, locationName } = req.body;
-    if (!userId || !meterId || !locationName) {
-=======
     const { userId, nickname, meterId } = req.body;
 
     if (!userId || !meterId) {
->>>>>>> 0a6287a8ee746f9e538c2cdbbe1e749bfe38d727
       return res.status(400).json({ success: false, message: 'Missing data' });
     }
 
     try {
       await database.execute(
-<<<<<<< HEAD
-        `INSERT INTO favorites (user_id, nickname, meter_id, location_name)
-         VALUES (?, ?, ?, ?)`,
-        [userId, nickname || null, meterId, locationName]
-=======
         `INSERT INTO favorites (user_id, nickname, meter_id)
        VALUES (?, ?, ?)`,
         [userId, nickname || null, meterId]
->>>>>>> 0a6287a8ee746f9e538c2cdbbe1e749bfe38d727
       );
       res.json({ success: true, message: 'Favorite added' });
     } catch (err) {
@@ -41,12 +30,6 @@ export default function createFavoritesRouter(database) {
 
     try {
       const [rows] = await database.execute(
-<<<<<<< HEAD
-        `SELECT id, nickname, meter_id, location_name, added_at
-         FROM favorites WHERE user_id = ?`,
-        [userId]
-      );
-=======
         `SELECT 
         f.id,
         f.nickname,
@@ -60,7 +43,6 @@ export default function createFavoritesRouter(database) {
         [userId]
       );
 
->>>>>>> 0a6287a8ee746f9e538c2cdbbe1e749bfe38d727
       res.json({ success: true, favorites: rows });
     } catch (err) {
       console.error(err);
@@ -89,11 +71,7 @@ export default function createFavoritesRouter(database) {
     const { id } = req.params;
     try {
       const [rows] = await database.execute(
-<<<<<<< HEAD
-        'SELECT id, nickname, meter_id, location_name FROM favorites WHERE id = ?',
-=======
         'SELECT id, nickname, meter_id FROM favorites WHERE id = ?',
->>>>>>> 0a6287a8ee746f9e538c2cdbbe1e749bfe38d727
         [id]
       );
       if (rows.length === 0) return res.json({ success: false, message: 'Not found' });
@@ -105,10 +83,6 @@ export default function createFavoritesRouter(database) {
   });
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 0a6287a8ee746f9e538c2cdbbe1e749bfe38d727
   // Update nickname
   router.put('/:id', async (req, res) => {
     const { id } = req.params;
