@@ -500,7 +500,17 @@ app.use('/email', createEmailRouter(database));
 app.use(express.static(path.join(__dirname, 'public'), {
     extensions: ['html']
 }));
-app.use((req, res) => res.status(404).send('Not found'));
+
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(err.status || 500)
+        .sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
 
 // Start server
 const PORT = process.env.PORT || 4000;
