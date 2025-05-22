@@ -522,8 +522,4 @@ app.get('/test-session', (req, res) => {
         session: req.session,
         user: req.session.user || 'Not logged in'
     });
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> dev
