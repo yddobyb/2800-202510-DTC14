@@ -14,31 +14,27 @@
     </style>
 </head>
 
-<body class="bg-gray-100">
-    <div class="max-w-[390px] mx-auto min-h-screen bg-gray-50">
+<body class="bg-white min-h-screen flex items-center justify-center">
+    <div class="w-[440px] h-[956px] bg-white overflow-hidden relative">
         <!-- Header -->
         <div class="bg-white shadow-sm">
-            <div class="bg-orange-500 px-4 py-4 flex items-center justify-between">
-                <button class="text-white text-2xl font-semibold">←</button>
+            <div class="bg-[#2553E9] px-4 py-4 flex items-center justify-between">
+                <button onclick="window.location.href='./map.html';"
+                    class="text-white text-2xl font-semibold">←</button>
                 <h1 class="text-white text-xl font-semibold">Choose Duration</h1>
-                <button class="text-white text-2xl">✉</button>
-            </div>
-            <div class="px-4 py-3">
-                <p class="text-gray-500 text-sm">ZipBy Id:</p>
             </div>
         </div>
 
         <!-- Main Content -->
-        <div class="p-4 space-y-4">
+        <div class="px-4 pt-7 space-y-4">
             <!-- Zone Card -->
-            <div class="bg-white rounded-lg p-5 shadow-sm">
+            <div class="bg-white rounded-lg px-5 pt-3 shadow-sm">
                 <div class="space-y-3">
                     <p class="text-gray-600 flex items-center">
                         <span class="mr-2">📍</span>
                         Zone Number
                     </p>
-                    <h2 class="text-2xl font-semibold">17900</h2>
-                    <p class="text-gray-500 text-sm">Lot 179 - 443 Seymour St</p>
+                    <h2 class="text-2xl font-semibold">00000</h2>
                 </div>
             </div>
 
@@ -49,12 +45,12 @@
                         <span class="mr-2">🚗</span>
                         Vehicle
                     </p>
-                    <p class="text-base font-medium"> RS2918(British Columbia (BC))</p>
+                    <p class="text-base font-medium"> RS2918</p>
                 </div>
             </div>
 
             <!-- Payment Method Card -->
-            <div class="bg-white rounded-lg p-5 shadow-sm">
+            <div class="relative bg-white rounded-lg p-5 shadow-sm">
                 <div class="space-y-3">
                     <p class="text-gray-600 flex items-center">
                         <span class="mr-2">💳</span>
@@ -70,18 +66,40 @@
                                 <p class="text-sm text-gray-500">Expires 11/11</p>
                             </div>
                         </div>
-                        <button class="text-2xl text-gray-400 hover:text-gray-600 transition-colors">›</button>
+                        <button data-dropdown="cards"
+                            class="text-2xl text-gray-400 hover:text-gray-600 transition-colors">›</button>
+                    </div>
+
+                    <div data-dropdown-menu="cards"
+                        class="hidden mt-2 bg-white rounded-lg shadow-lg border border-gray-200">
+                        <div class="divide-y divide-gray-100">
+                            <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">VISA *1234</div>
+                            <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">Master *5678</div>
+                        </div>
+                        <div class="px-4 py-3">
+                            <button data-action="add-card" class="w-full text-left text-blue-600 hover:underline">
+                                + Add new card
+                            </button>
+                        </div>
+
+                        <form data-form="new-card" class="hidden px-4 pb-4 space-y-3">
+                            <input type="text" placeholder="Card Number" class="w-full border rounded px-3 py-2" />
+                            <div class="flex space-x-2">
+                                <input type="text" placeholder="MM/YY" class="w-full flex-1 border rounded px-3 py-2" />
+                                <input type="text" placeholder="CVC" class="w-full flex-1 border rounded px-3 py-2" />
+                            </div>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600" />
+                                <span class="ml-2 text-sm">Save this card</span>
+                            </label>
+                            <button type="submit" class="w-full bg-[#2553E9] text-white py-2 rounded">
+                                Done
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
 
-            <!-- Duration Toggle -->
-            <div class="bg-gray-100 p-0.5 rounded-lg flex">
-                <button data-button="duration"
-                    class="flex-1 py-3.5 px-4 bg-green-500 rounded-md text-white font-semibold text-center transition-colors duration-200">
-                    Duration
-                </button>
-            </div>
 
             <!-- Time Selection -->
             <div class="bg-white rounded-lg p-5 shadow-sm">
@@ -99,7 +117,7 @@
             </div>
 
             <!-- Notification Card -->
-            <div class="bg-white rounded-lg p-5 shadow-sm">
+            <div class="bg-white rounded-lg px-5 pb-2 shadow-sm">
                 <div class="space-y-3">
                     <p class="text-gray-600 flex items-center">
                         <span class="mr-2">🔔</span>
@@ -121,15 +139,49 @@
                 </div>
             </div>
 
-            <!-- Continue Button -->
-            <button data-button="continue"
-                class="w-full bg-gray-200 text-gray-500 font-semibold py-4 rounded-lg mt-6 transition-colors duration-200 disabled:cursor-not-allowed">
+            <button id="continue-btn" data-button="continue"
+                class="w-full bg-gray-200 text-gray-500 font-semibold py-4 rounded-lg mt-6 disabled:cursor-not-allowed"
+                disabled>
                 CONTINUE
             </button>
         </div>
     </div>
+    <script>
+        // 1) grab zone & rate from ?zone=…&rate=…
+        const params = new URLSearchParams(location.search);
+        const zone = params.get('zone') || '';
+        const rate = params.get('rate') || '';
+
+        // 2) inject zone into the “Zone Number” field
+        document.querySelectorAll('p.text-gray-600.flex.items-center')
+            .forEach(p => {
+                if (p.textContent.includes('Zone Number')) {
+                    const h2 = p.nextElementSibling;
+                    if (h2 && h2.tagName === 'H2') h2.textContent = zone;
+                }
+            });
+
+        // 3) wire up the CONTINUE button
+        document.getElementById('continue-btn')
+            .addEventListener('click', () => {
+                // read your time inputs
+                const hours = document.querySelector('[data-input="hour"]').textContent;
+                const minutes = document.querySelector('[data-input="minute"]').textContent;
+
+                // build the next URL
+                const qs = new URLSearchParams({
+                    zone,
+                    rate,
+                    hours,
+                    minutes
+                }).toString();
+
+                location.href = 'paymentconfirmpage.html?' + qs;
+            });
+    </script>
 
     <script src="script.js"></script>
+
 </body>
 
 </html>
