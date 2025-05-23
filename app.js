@@ -13,6 +13,7 @@ import paymentRouter from './api/payment.js';
 import createFavoritesRouter from './api/favorites.js';
 import createPasswordRouter from './api/password.js';
 import createEmailRouter from './api/email.js';
+import createNotificationRouter from './api/notifications.js';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -489,6 +490,8 @@ app.post('/api/preferences/notifications-enabled', async (req, res) => {
         return res.status(500).json({ error: 'An unexpected error occurred' });
     }
 });
+
+app.use('/api/notifications', createNotificationRouter(database, sendCodeEmail));
 
 // Update Password
 app.use('/password', createPasswordRouter(database));
