@@ -37,57 +37,58 @@ ParkSmart is a web application that helps users conveniently search for parking 
 ## Folder Structure
 
 ```
-.
-├── .git/                       # Git version control
-├── .idea/                      # IntelliJ IDEA settings (optional)
-├── .venv/                      # Python virtual environment (optional)
-├── api/
-│   ├── favorites.js            # Favorites API router
-│   ├── meters.js               # Parking meter API router
-│   └── payment.js              # Payment API router
-├── node_modules/               # Node.js packages
-├── public/
-│   ├── asset/                  # Images, icons, and other static assets
-│   ├── scripts/
-│   │   ├── action_btn.js       # Action button script (for map.html)
-│   │   ├── authentication.js   # User authentication frontend script
-│   │   ├── filter.js         # Filtering functionality script (for map.html)
-│   │   ├── main.js           # Main page script
-│   │   ├── map.js            # Map and core functionality script for map.html
-│   │   ├── navigation_bar.js # Common bottom navigation bar script
-│   │   ├── payment.js        # Payment page script
-│   │   └── status.js         # Status page and timer script
-│   ├── main.html               # Main page
-│   ├── map.html                # Map search page
-│   ├── favorite.html           # Favorites page
-│   ├── status.html             # Current parking status page
-│   ├── paymentpage.html        # Payment information input page
-│   ├── paymentconfirmpage.html # Payment confirmation page
-│   ├── paymentsuccesspage.html # Payment success page
-│   ├── login.html              # Login page
-│   ├── signup.html             # Registration page
-│   ├── forgotpassword.html     # Password recovery request page
-│   ├── reset_password.html     # Password reset page
-│   ├── setting.html            # User settings page
-│   ├── motorcycle-parking.json # Motorcycle parking data
-│   ├── disability-parking.json # Disabled parking data
-│   └── timer.js                # Timer logic (appears to be integrated into status.js)
-├── .DS_Store                   # macOS system file (Git ignore target)
-├── .gitignore                  # Git ignore file list
-├── README.md                   # Project description and guide (current file)
-├── app.js                      # Express application main file (server logic and routing)
-├── db-setup.sql                # Database table creation script
-├── meter_rates.csv             # Parking rates CSV data
-├── package-lock.json           # npm dependency lock file
-├── package.json                # npm project settings and dependency list
-├── settings_backend.js         # Settings backend logic (estimated)
-├── style.css                   # Common CSS (can be used alongside Tailwind)
-├── tailwind.config.js          # Tailwind CSS configuration
-├── update-db.js                # Database update script (estimated)
-├── scrape_pdf_rates_qwer.py    # Python data scraping script
-├── scrape_rateqertwr.py      # Python data scraping script
-├── deep.py                     # Python data processing script (estimated)
-└── etl.py                      # Python ETL script
+├── api/                    # API routes and controllers
+├── public/                 # Static files and frontend
+│   ├── asset/             # Images and other static assets
+│   ├── scripts/           # JavaScript files
+│   │   ├── action_btn.js
+│   │   ├── authentication.js
+│   │   ├── filter.js
+│   │   ├── main.js
+│   │   ├── map.js
+│   │   ├── navigation_bar.js
+│   │   ├── payment.js
+│   │   ├── script.js
+│   │   ├── status.js
+│   │   └── timer.js
+│   ├── 404.html
+│   ├── add_a_card.html
+│   ├── disability-parking.json
+│   ├── edit_favorite.html
+│   ├── email.html
+│   ├── favorite.html
+│   ├── forgotpassword.html
+│   ├── help_and_support.html
+│   ├── login.html
+│   ├── main.html
+│   ├── map.html
+│   ├── motorcycle-parking.json
+│   ├── notification.html
+│   ├── password.html
+│   ├── paymentconfirmpage.html
+│   ├── paymentpage.html
+│   ├── paymentsuccesspage.html
+│   ├── reset_password.html
+│   ├── security.html
+│   ├── setting.html
+│   ├── signup.html
+│   ├── status.html
+│   ├── verify.html
+│   └── verify_email.html
+├── .gitignore
+├── alter_paymenthistory.sql
+├── app.js                  # Main application file
+├── db-setup.sql           # Database setup script
+├── deep.py               # Python script for fun facts
+├── etl.py                # ETL script for data processing
+├── meter_rates.csv       # Parking meter rates data
+├── package.json          # Node.js dependencies
+├── package-lock.json
+├── scrape_pdf_rates_qwer.py
+├── scrape_rateqertwr.py
+├── style.css
+├── tailwind.config.js
+└── update-db.js          # Database update script
 ```
 
 ## Installation and Running Instructions
