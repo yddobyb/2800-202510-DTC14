@@ -276,6 +276,4 @@ This project does not utilize any AI services. All functionality is implemented 
 For any questions or support, please contact:
 - GitHub: [yddobyb](https://github.com/yddobyb)
 
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
 
