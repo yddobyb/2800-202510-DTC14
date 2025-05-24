@@ -1,6 +1,12 @@
 import express from 'express';
 import cron from 'node-cron';
 
+/**
+ * This codebase includes a collaborative effort from an external source ChatGPT 4o.
+ * Main collaboration from ChatGPT 4o involved database query refinement, identififying missing functionality, error handling, and implementing time constraints.
+ * 
+ */
+
 const router = express.Router();
 
 let notificationJob = null;
