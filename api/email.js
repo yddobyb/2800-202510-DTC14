@@ -4,6 +4,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 
+/**
+ * This codebase includes a collaborative effort from an external source ChatGPT 4o.
+ * Main collaboration from ChatGPT 4o involded identififying missing functionality, error messaging, and structure refinement.
+ * 
+ */
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
